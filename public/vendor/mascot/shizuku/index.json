@@ -1,0 +1,7 @@
+{
+  "name": "Shizuku",
+  "default": "default",
+  "costumes": [
+    { "key": "default", "label": "默认", "path": "shizuku.model.json" }
+  ]
+}

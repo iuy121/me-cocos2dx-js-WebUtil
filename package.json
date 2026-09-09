@@ -1,0 +1,21 @@
+{
+  "name": "ui-image-res-sync",
+  "version": "1.0.0",
+  "description": "本地 UI 图片资源变更识别与 res 目录替换工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node scripts/check-parse.js && node scripts/check-recent-projects.js && node scripts/check-tools-integration.js && node scripts/check-mascot.js && node scripts/check-mascot-rain.js && node scripts/check-launcher.js",
+    "check:parse": "node scripts/check-parse.js",
+    "check:recent": "node scripts/check-recent-projects.js",
+    "check:tools": "node scripts/check-tools-integration.js",
+    "check:mascot": "node scripts/check-mascot.js",
+    "check:mascot-rain": "node scripts/check-mascot-rain.js",
+    "check:launcher": "node scripts/check-launcher.js"
+  },
+  "engines": {
+    "node": ">=10.20.1"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

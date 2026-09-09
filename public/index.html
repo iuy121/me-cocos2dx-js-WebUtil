@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UI 图片资源同步</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=bc11c703122c">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=bc11c703122c">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=bc11c703122c">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=bc11c703122c">
+  <link rel="image_src" href="/logo.png?v=bc11c703122c">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient-bg" id="ambientBg" aria-hidden="true">
+    <div class="ambient-layer ambient-layer-a"></div>
+    <div class="ambient-layer ambient-layer-b"></div>
+    <div class="ambient-grid"></div>
+    <div class="ambient-cursor"></div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark"><img class="brand-logo" src="/logo.png?v=bc11c703122c" width="263" height="280" alt="资源同步台标志"></div>
+        <div>
+          <div class="brand-name">资源同步台</div>
+          <div class="sidebar-title">工具集</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-item is-active" type="button" data-target="sync">UI 图片资源同步</button>
+        <button class="sidebar-item" type="button" data-target="launcher">客户端启动台</button>
+        <button class="sidebar-item" type="button" data-target="json2csd">JSON 转 CSD 工具</button>
+        <button class="sidebar-item" type="button" data-target="game-ui-report">七星玩法 UI 映射</button>
+      </nav>
+
+      <div class="mascot-stage" id="mascotStage" aria-hidden="true">
+        <div class="mascot-rain" id="mascotRain" aria-hidden="true"></div>
+        <div class="mascot-bubble" id="mascotBubble">点一下空白处，会有一点灵感闪光。</div>
+        <div class="anime-mascot" id="animeMascot">
+          <canvas class="live2d-canvas" id="live2dCanvas" aria-label="Live2D 二次元角色"></canvas>
+          <img class="mascot-fallback" id="mascotFallback" alt="Pio" hidden>
+        </div>
+        <button class="mascot-costume" id="mascotCostumeBtn" type="button" title="换一套衣服" hidden>🦇</button>
+        <button class="mascot-character" id="mascotCharacterBtn" type="button" title="换个角色" hidden>🎭</button>
+      </div>
+    </aside>
+
+    <section class="view is-active" data-view="sync">
+      <main class="shell">
+    <section class="topbar">
+      <div>
+        <div class="eyebrow">本地资源流水线</div>
+        <h1>UI 图片资源同步</h1>
+        <p id="topbarSubtitle">从 git 识别 `ui/cocosstudio` 图片变更，预览后覆盖到对应 `res*` 目录。</p>
+      </div>
+      <div class="status-pill" id="serverStatus">等待配置</div>
+    </section>
+
+    <section class="panel">
+      <div class="form-grid">
+        <div class="field wide project-root-field">
+          <label for="projectRoot">工程根目录</label>
+          <input id="projectRoot" type="text" list="recentProjectRoots" placeholder="例如 D:\project\client">
+          <datalist id="recentProjectRoots"></datalist>
+          <div id="recentProjectRootButtons" class="recent-project-root-buttons" aria-label="最近工程目录"></div>
+        </div>
+
+        <label class="field">
+          <span>版本管理</span>
+          <select id="vcs">
+            <option value="git">Git</option>
+            <option value="svn">SVN</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>识别模式</span>
+          <select id="mode">
+            <option value="status">工作区变更</option>
+            <option value="diff">提交区间对比</option>
+          </select>
+        </label>
+
+        <label class="field diff-field">
+          <span id="baseRefLabel">Base</span>
+          <input id="baseRef" type="text" placeholder="origin/master">
+        </label>
+
+        <label class="field diff-field">
+          <span id="headRefLabel">Head</span>
+          <input id="headRef" type="text" value="HEAD">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="useDefault" class="secondary" type="button">使用默认目录</button>
+        <button id="scanBtn" class="primary" type="button">识别图片变更</button>
+        <button id="scanCsdBtn" class="secondary" type="button">识别 CSD 本地变更</button>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div class="metric">
+        <span>总数</span>
+        <strong id="mTotal">0</strong>
+      </div>
+      <div class="metric ready">
+        <span>可替换</span>
+        <strong id="mReady">0</strong>
+      </div>
+      <div class="metric conflict">
+        <span>需选择</span>
+        <strong id="mConflict">0</strong>
+      </div>
+      <div class="metric missing">
+        <span>未命中</span>
+        <strong id="mMissing">0</strong>
+      </div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="section-head">
+        <div>
+          <h2>识别结果</h2>
+          <p id="scanNote">尚未识别。</p>
+        </div>
+        <div class="actions tight">
+          <button id="previewBtn" class="secondary" type="button" disabled>打开预览</button>
+          <button id="applyBtn" class="primary" type="button" disabled>确认替换</button>
+        </div>
+      </div>
+      <div class="result-list" id="resultList"></div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="section-head">
+        <div>
+          <h2>CSD 对应 JSON</h2>
+          <p id="csdScanNote">尚未识别。</p>
+        </div>
+        <div class="actions tight">
+          <button id="selectReadyCsdBtn" class="secondary" type="button" disabled>勾选可替换项</button>
+          <button id="clearCsdSelectionBtn" class="secondary" type="button" disabled>取消全选</button>
+          <button id="applyCsdBtn" class="primary" type="button" disabled>替换到 res 根目录</button>
+          <button id="restoreCsdJsonBtn" class="secondary danger" type="button">还原非白名单 JSON</button>
+        </div>
+      </div>
+      <div class="result-list" id="csdResultList"></div>
+    </section>
+      </main>
+    </section>
+
+    <section class="view" data-view="launcher">
+      <main class="shell launcher-shell">
+        <section class="topbar">
+          <div>
+            <div class="eyebrow">多开调试</div>
+            <h1>客户端启动台</h1>
+            <p id="launcherSubtitle">选工程、填账号、一键拉起 jt.exe，每个实例独立日志、实时跟随。</p>
+          </div>
+          <div class="status-pill" id="launcherStatus">未连接</div>
+        </section>
+
+        <section class="panel launcher-config">
+          <div class="launcher-config-grid">
+            <div class="launcher-project-col">
+              <div class="section-head tight">
+                <div>
+                  <h2>工程</h2>
+                  <p id="launcherProjectNote">从 client 目录扫描壳工程。</p>
+                </div>
+                <div class="launcher-sort" role="group" aria-label="工程排序">
+                  <button class="chip is-active" type="button" data-sort="recent">最近</button>
+                  <button class="chip" type="button" data-sort="count">高频</button>
+                  <button class="chip" type="button" data-sort="name">名称</button>
+                </div>
+              </div>
+              <input id="launcherProjectSearch" class="launcher-search" type="text" placeholder="搜索工程名，如 xyj">
+              <div id="launcherProjectPins" class="launcher-pins" aria-label="高频工程"></div>
+              <div id="launcherProjectGrid" class="launcher-project-grid" role="listbox" aria-label="工程列表"></div>
+            </div>
+
+            <div class="launcher-form-col">
+              <div class="field">
+                <label for="launcherUid">账号 uid <span class="hint">逗号分隔可批量串行开</span></label>
+                <input id="launcherUid" type="text" placeholder="例如 1000001 或 1000001,1000002">
+                <div id="launcherUidRecent" class="launcher-uid-recent" aria-label="该工程最近使用的 uid"></div>
+              </div>
+
+              <div class="field">
+                <label>窗口尺寸 <span class="hint">宽固定 1000，按比例选高</span></label>
+                <div id="launcherSizeGrid" class="launcher-size-grid" role="group" aria-label="尺寸档位"></div>
+                <div class="launcher-size-custom">
+                  <label class="inline-check">
+                    <input id="launcherSizeCustomToggle" type="checkbox">
+                    <span>自定义</span>
+                  </label>
+                  <input id="launcherWidth" class="mini-input" type="number" placeholder="宽" disabled>
+                  <span class="mini-x">×</span>
+                  <input id="launcherHeight" class="mini-input" type="number" placeholder="高" disabled>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="launcherClientRoot">client 根目录 <span class="hint">留空自动探测</span></label>
+                <input id="launcherClientRoot" type="text" placeholder="含 jtool/jt.exe 的目录">
+              </div>
+
+              <div class="actions">
+                <button id="launcherLaunchBtn" class="primary" type="button" disabled>启动</button>
+                <button id="launcherRefreshBtn" class="secondary" type="button">刷新列表</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel launcher-log-panel">
+          <div class="section-head">
+            <div>
+              <h2>运行实例与日志</h2>
+              <p id="launcherLogNote">尚无实例。</p>
+            </div>
+            <div class="launcher-log-tools">
+              <div class="launcher-view-toggle" role="group" aria-label="日志视图">
+                <button class="chip is-active" type="button" data-logview="split">分栏</button>
+                <button class="chip" type="button" data-logview="merged">合并</button>
+              </div>
+              <input id="launcherLogFilter" class="launcher-search" type="text" placeholder="过滤关键字">
+              <label class="inline-check">
+                <input id="launcherErrorOnly" type="checkbox">
+                <span>仅错误</span>
+              </label>
+              <label class="inline-check">
+                <input id="launcherAutoScroll" type="checkbox" checked>
+                <span>自动滚动</span>
+              </label>
+              <button id="launcherPauseBtn" class="chip" type="button">暂停</button>
+              <button id="launcherClearBtn" class="chip" type="button">清屏</button>
+              <button id="launcherClearDeadBtn" class="chip" type="button">清理已退出</button>
+            </div>
+          </div>
+          <div id="launcherInstances" class="launcher-instances"></div>
+          <div id="launcherLogArea" class="launcher-log-area" data-logview="split"></div>
+        </section>
+      </main>
+    </section>
+
+    <section class="view" data-view="json2csd">
+      <iframe id="json2csdFrame" data-src="/tools/json-to-csd/index.html" title="JSON 转 CSD 工具"></iframe>
+    </section>
+
+    <section class="view" data-view="game-ui-report">
+      <iframe id="gameUiReportFrame" data-src="/tools/game-ui-report.html" title="七星玩法 UI 映射"></iframe>
+    </section>
+  </div>
+
+  <div class="modal hidden" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="previewTitle">图片预览</h2>
+          <p id="previewSubtitle">只会处理已勾选且有目标目录的图片。</p>
+        </div>
+        <button class="icon-button" id="closePreview" type="button" aria-label="关闭预览">×</button>
+      </div>
+      <div class="preview-grid" id="previewGrid"></div>
+      <div class="modal-foot">
+        <button id="selectReadyBtn" class="secondary" type="button">勾选可替换项</button>
+        <button id="clearPreviewSelectionBtn" class="secondary" type="button">取消全选</button>
+        <button id="applyFromModalBtn" class="primary" type="button">确认替换</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="restoreModal" role="dialog" aria-modal="true" aria-labelledby="restoreTitle">
+    <div class="modal-card modal-card-narrow">
+      <div class="modal-head">
+        <div>
+          <h2 id="restoreTitle">谨慎操作：还原非白名单 JSON</h2>
+          <p id="restoreSubtitle">会保留本地变更 CSD 对应的 `ui/res` 和 `res` 同名 JSON，其余本地改动 JSON 会尝试还原到 HEAD。</p>
+        </div>
+        <button class="icon-button" id="closeRestoreModal" type="button" aria-label="关闭还原弹窗">×</button>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-note danger-note" id="restoreWarning">
+          该操作会覆盖工作区中的本地 JSON 改动。未跟踪文件不会自动删除，请先确认范围。
+        </div>
+        <div class="confirm-metrics" id="restoreMetrics"></div>
+        <div class="result-list result-list-compact" id="restoreList"></div>
+      </div>
+      <div class="modal-foot">
+        <button id="cancelRestoreBtn" class="secondary" type="button">取消</button>
+        <button id="confirmRestoreBtn" class="primary danger-fill" type="button">确认还原</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="click-effects" id="clickEffects" aria-hidden="true"></div>
+  <div class="toast hidden" id="toast"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

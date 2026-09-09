@@ -1,0 +1,8 @@
+{
+  "name": "Haru",
+  "default": "01",
+  "costumes": [
+    { "key": "01", "label": "版本1", "path": "01/haru01.model.json" },
+    { "key": "02", "label": "版本2", "path": "02/haru02.model.json" }
+  ]
+}

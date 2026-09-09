@@ -1,0 +1,62 @@
+{
+  "batchId": "e4781ebd3fc9",
+  "createdAt": 1788939350179,
+  "projectRoot": "D:\\6666\\qixing\\client\\mjclient_aiqiyi",
+  "summary": {
+    "copied": 10,
+    "skipped": 2,
+    "error": 0
+  },
+  "entries": [
+    {
+      "targetPath": "res/friendCards/main/btn_gonggao_n.png",
+      "beforeExisted": true,
+      "store": "0.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_ledou.png",
+      "beforeExisted": true,
+      "store": "1.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_memberlist_n.png",
+      "beforeExisted": true,
+      "store": "2.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_refresh.png",
+      "beforeExisted": true,
+      "store": "3.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_safebox.png",
+      "beforeExisted": true,
+      "store": "4.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_skin.png",
+      "beforeExisted": true,
+      "store": "5.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_tongji_n.png",
+      "beforeExisted": true,
+      "store": "6.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_xiaoxi.png",
+      "beforeExisted": true,
+      "store": "7.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_zhanji.png",
+      "beforeExisted": true,
+      "store": "8.bin"
+    },
+    {
+      "targetPath": "res/friendCards/setSkin/bg_0.png",
+      "beforeExisted": true,
+      "store": "9.bin"
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "clientRoot": "",
+  "lastProject": "mjclient_aiqiyi",
+  "projectSort": "recent",
+  "sizes": [
+    {
+      "key": "1000x488",
+      "count": 652,
+      "lastUsedAt": 1788939373018
+    },
+    {
+      "key": "1000x526",
+      "count": 11,
+      "lastUsedAt": 1788592274712
+    },
+    {
+      "key": "1000x465",
+      "count": 45,
+      "lastUsedAt": 1788431896011
+    },
+    {
+      "key": "1000x645",
+      "count": 19,
+      "lastUsedAt": 1785209344638
+    },
+    {
+      "key": "1000x440",
+      "count": 5,
+      "lastUsedAt": 1785205550098
+    },
+    {
+      "key": "1000x588",
+      "count": 1,
+      "lastUsedAt": 1785146892684
+    },
+    {
+      "key": "1000x417",
+      "count": 1,
+      "lastUsedAt": 1785146315382
+    },
+    {
+      "key": "1000x800",
+      "count": 4,
+      "lastUsedAt": 1785132356663
+    }
+  ],
+  "projects": {
+    "mjclient_xyj": {
+      "count": 4,
+      "lastUsedAt": 1785131789752,
+      "lastSize": "1280x720",
+      "uids": [
+        {
+          "uid": "1000002",
+          "count": 2,
+          "lastUsedAt": 1785131789752
+        },
+        {
+          "uid": "1000001",
+          "count": 2,
+          "lastUsedAt": 1785131787685
+        }
+      ]
+    },
+    "mjclient_yongsheng": {
+      "count": 84,
+      "lastUsedAt": 1788000711067,
+      "lastSize": "1000x488",
+      "uids": [
+        {
+          "uid": "1000004",
+          "count": 3,
+          "lastUsedAt": 1788000711067
+        },
+        {
+          "uid": "1000003",
+          "count": 3,
+          "lastUsedAt": 1788000708987
+        },
+        {
+          "uid": "1000002",
+          "count": 3,
+          "lastUsedAt": 1788000706930
+        },
+        {
+          "uid": "1000001",
+          "count": 6,
+          "lastUsedAt": 1788000704867
+        },
+        {
+          "uid": "100001",
+          "count": 2,
+          "lastUsedAt": 1786177830242
+        }
+      ]
+    },
+    "mjclient_qcxy": {
+      "count": 4,
+      "lastUsedAt": 1785132803106,
+      "lastSize": "1000x465",
+      "uids": [
+        {
+          "uid": "100002",
+          "count": 2,
+          "lastUsedAt": 1785132803106
+        },
+        {
+          "uid": "100001",
+          "count": 2,
+          "lastUsedAt": 1785132801034
+        }
+      ]
+    },
+    "mjclient_yunnan": {
+      "count": 169,
+      "lastUsedAt": 1785401362434,
+      "lastSize": "1000x488",
+      "uids": [
+        {
+          "uid": "1000003",
+          "count": 27,
+          "lastUsedAt": 1785401362434
+        },
+        {
+          "uid": "1000002",
+          "count": 33,
+          "lastUsedAt": 1785401360363
+        },
+        {
+          "uid": "1000001",
+          "count": 76,
+          "lastUsedAt": 1785401358293
+        },
+        {
+          "uid": "1000004",
+          "count": 18,
+          "lastUsedAt": 1785296011300
+        },
+        {
+          "uid": "1000008",
+          "count": 1,
+          "lastUsedAt": 1785142000822
+        }
+      ]
+    },
+    "mjclient-liushun": {
+      "count": 5,
+      "lastUsedAt": 1785728000512,
+      "lastSize": "1280x720",
+      "uids": [
+        {
+          "uid": "100001",
+          "count": 5,
+          "lastUsedAt": 1785728000512
+        }
+      ]
+    },
+    "mjclient-youxian": {
+      "count": 378,
+      "lastUsedAt": 1788746313567,
+      "lastSize": "1000x488",
+      "uids": [
+        {
+          "uid": "100004",
+          "count": 36,
+          "lastUsedAt": 1788746313567
+        },
+        {
+          "uid": "100003",
+          "count": 75,
+          "lastUsedAt": 1788746311495
+        },
+        {
+          "uid": "100002",
+          "count": 103,
+          "lastUsedAt": 1788746309419
+        },
+        {
+          "uid": "100001",
+          "count": 164,
+          "lastUsedAt": 1788746307368
+        }
+      ]
+    },
+    "mjclient_xile": {
+      "count": 75,
+      "lastUsedAt": 1788246607124,
+      "lastSize": "1000x488",
+      "uids": [
+        {
+          "uid": "100001",
+          "count": 22,
+          "lastUsedAt": 1788246607124
+        },
+        {
+          "uid": "100003",
+          "count": 13,
+          "lastUsedAt": 1788161866853
+        },
+        {
+          "uid": "100002",
+          "count": 24,
+          "lastUsedAt": 1788161864783
+        },
+        {
+          "uid": "422710",
+          "count": 7,
+          "lastUsedAt": 1786415927876
+        },
+        {
+          "uid": "291047",
+          "count": 7,
+          "lastUsedAt": 1786415925827
+        }
+      ]
+    },
+    "mjclient-xianqu": {
+      "count": 32,
+      "lastUsedAt": 1788494341718,
+      "lastSize": "1000x488",
+      "uids": [
+        {
+          "uid": "100002",
+          "count": 16,
+          "lastUsedAt": 1788494341718
+        },
+        {
+          "uid": "100001",
+          "count": 16,
+          "lastUsedAt": 1788494339660
+        }
+      ]
+    },
+    "mjclient_aiqiyi": {
+      "count": 21,
+      "lastUsedAt": 1788939373018,
+      "lastSize": "1000x488",
+      "uids": [
+        {
+          "uid": "100001",
+          "count": 14,
+          "lastUsedAt": 1788939373018
+        },
+        {
+          "uid": "100002",
+          "count": 7,
+          "lastUsedAt": 1788931107275
+        }
+      ]
+    }
+  }
+}

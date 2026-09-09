@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Live2D 角色切换完整测试</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=bc11c703122c">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=bc11c703122c">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=bc11c703122c">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=bc11c703122c">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #333; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+    .test-result { margin: 8px 0; padding: 8px 12px; border-radius: 4px; font-size: 14px; }
+    .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+    .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+    .warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+    .info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+    #console-output { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; max-height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; margin-top: 10px; }
+    .console-line { margin: 2px 0; }
+    .console-error { color: #f48771; }
+    .console-warn { color: #dcdcaa; }
+    .console-log { color: #4ec9b0; }
+    button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #6c757d; cursor: not-allowed; }
+    .character-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+    .character-item { padding: 8px 16px; background: #e9ecef; border-radius: 4px; font-size: 14px; }
+    .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid #f3f3f3; border-top: 2px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 Live2D 角色切换完整测试</h1>
+
+    <div class="test-section">
+      <h2>测试控制</h2>
+      <button onclick="runAllTests()">🚀 运行所有测试</button>
+      <button onclick="testCharacterSwitch()">🔄 测试角色切换</button>
+      <button onclick="clearResults()">🗑️ 清除结果</button>
+      <button onclick="window.open('http://127.0.0.1:33210', '_blank')">🌐 打开主页面</button>
+    </div>
+
+    <div class="test-section">
+      <h2>测试结果</h2>
+      <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>控制台输出</h2>
+      <div id="console-output"></div>
+    </div>
+  </div>
+
+  <script>
+    var results = document.getElementById('test-results');
+    var consoleOutput = document.getElementById('console-output');
+    var testData = {
+      characters: [],
+      errors: [],
+      warnings: []
+    };
+
+    function addResult(message, type) {
+      var div = document.createElement('div');
+      div.className = 'test-result ' + type;
+      div.innerHTML = message;
+      results.appendChild(div);
+    }
+
+    function addConsole(message, type) {
+      var div = document.createElement('div');
+      div.className = 'console-line console-' + type;
+      div.textContent = new Date().toLocaleTimeString() + ' [' + type.toUpperCase() + '] ' + message;
+      consoleOutput.appendChild(div);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    function clearResults() {
+      results.innerHTML = '';
+      consoleOutput.innerHTML = '';
+      testData.errors = [];
+      testData.warnings = [];
+    }
+
+    // 捕获所有错误
+    window.onerror = function(msg, url, line, col, error) {
+      var errorMsg = msg + ' at ' + url + ':' + line + ':' + col;
+      testData.errors.push(errorMsg);
+      addConsole(errorMsg, 'error');
+      addResult('❌ JavaScript 错误: ' + msg, 'error');
+      return false;
+    };
+
+    // 捕获 Promise 错误
+    window.addEventListener('unhandledrejection', function(event) {
+      var errorMsg = 'Promise 错误: ' + event.reason;
+      testData.errors.push(errorMsg);
+      addConsole(errorMsg, 'error');
+      addResult('❌ ' + errorMsg, 'error');
+    });
+
+    // 劫持 console
+    var originalLog = console.log;
+    console.log = function() {
+      addConsole(Array.prototype.slice.call(arguments).join(' '), 'log');
+      originalLog.apply(console, arguments);
+    };
+
+    var originalWarn = console.warn;
+    console.warn = function() {
+      var msg = Array.prototype.slice.call(arguments).join(' ');
+      testData.warnings.push(msg);
+      addConsole(msg, 'warn');
+      originalWarn.apply(console, arguments);
+    };
+
+    var originalError = console.error;
+    console.error = function() {
+      var msg = Array.prototype.slice.call(arguments).join(' ');
+      testData.errors.push(msg);
+      addConsole(msg, 'error');
+      originalError.apply(console, arguments);
+    };
+
+    async function runAllTests() {
+      clearResults();
+      addResult('🚀 开始运行所有测试...', 'info');
+
+      try {
+        // 测试 1: 加载角色列表
+        addResult('📋 测试 1: 加载角色列表配置', 'info');
+        var response = await fetch('/vendor/mascot/characters.json');
+        if (!response.ok) throw new Error('无法加载 characters.json');
+        var characters = await response.json();
+        testData.characters = characters;
+        addResult('✅ 成功加载 ' + characters.length + ' 个角色', 'success');
+
+        var charList = '<div class="character-list">';
+        characters.forEach(function(c) {
+          charList += '<div class="character-item">' + c.name + ' (' + c.label + ')</div>';
+        });
+        charList += '</div>';
+        addResult(charList, 'info');
+
+        // 测试 2: 检查每个角色的配置
+        addResult('📋 测试 2: 检查所有角色配置文件', 'info');
+        for (var i = 0; i < characters.length; i++) {
+          var char = characters[i];
+          var indexRes = await fetch('/vendor/mascot/' + char.path + '/index.json');
+          if (!indexRes.ok) throw new Error(char.name + ' 配置文件加载失败');
+          var indexData = await indexRes.json();
+          addResult('✅ ' + char.name + ': ' + indexData.costumes.length + ' 套服装', 'success');
+        }
+
+        // 测试 3: 检查模型文件
+        addResult('📋 测试 3: 检查模型文件', 'info');
+        for (var i = 0; i < characters.length; i++) {
+          var char = characters[i];
+          var indexRes = await fetch('/vendor/mascot/' + char.path + '/index.json');
+          var indexData = await indexRes.json();
+          var firstCostume = indexData.costumes[0];
+          var modelPath = '/vendor/mascot/' + char.path + '/' + firstCostume.path;
+
+          var modelRes = await fetch(modelPath);
+          if (!modelRes.ok) throw new Error(char.name + ' 模型文件加载失败: ' + modelPath);
+          var modelData = await modelRes.json();
+
+          if (!modelData.model && !modelData.version && !modelData.type) {
+            addResult('⚠️ ' + char.name + ' 模型文件格式可能不正确', 'warning');
+          } else {
+            addResult('✅ ' + char.name + ' 模型文件正常', 'success');
+          }
+        }
+
+        // 测试 4: 检查 Live2D 运行时
+        addResult('📋 测试 4: 检查 Live2D 运行时库', 'info');
+        var runtimeFiles = [
+          '/vendor/live2d-runtime/pixi.min.js',
+          '/vendor/live2d-runtime/live2d.min.js',
+          '/vendor/live2d-runtime/pixi-live2d-display.min.js'
+        ];
+
+        for (var i = 0; i < runtimeFiles.length; i++) {
+          var res = await fetch(runtimeFiles[i], { method: 'HEAD' });
+          if (res.ok) {
+            addResult('✅ ' + runtimeFiles[i].split('/').pop() + ' 存在', 'success');
+          } else {
+            addResult('❌ ' + runtimeFiles[i].split('/').pop() + ' 不存在', 'error');
+          }
+        }
+
+        // 测试 5: 检查主页面元素
+        addResult('📋 测试 5: 检查主页面 HTML 元素', 'info');
+        var htmlRes = await fetch('/');
+        var html = await htmlRes.text();
+
+        var checks = [
+          { pattern: 'mascotCharacterBtn', name: '角色切换按钮 ID' },
+          { pattern: 'mascotCostumeBtn', name: '服装切换按钮 ID' },
+          { pattern: '🎭', name: '角色切换图标' },
+          { pattern: '🦇', name: '服装切换图标' },
+          { pattern: 'live2dCanvas', name: 'Live2D 画布' }
+        ];
+
+        checks.forEach(function(check) {
+          if (html.indexOf(check.pattern) !== -1) {
+            addResult('✅ 找到 ' + check.name, 'success');
+          } else {
+            addResult('❌ 缺少 ' + check.name, 'error');
+          }
+        });
+
+        // 测试 6: 检查 JavaScript 代码
+        addResult('📋 测试 6: 检查 JavaScript 代码', 'info');
+        var jsRes = await fetch('/app.js');
+        var jsCode = await jsRes.text();
+
+        var jsChecks = [
+          { pattern: 'loadCharacterList', name: '角色列表加载函数' },
+          { pattern: 'switchCharacter', name: '角色切换函数' },
+          { pattern: 'STORAGE_KEY_CHARACTER', name: '角色存储键' },
+          { pattern: 'state.currentCharacter', name: '当前角色状态' },
+          { pattern: 'characterBtn.addEventListener', name: '角色按钮事件监听' }
+        ];
+
+        jsChecks.forEach(function(check) {
+          if (jsCode.indexOf(check.pattern) !== -1) {
+            addResult('✅ 找到 ' + check.name, 'success');
+          } else {
+            addResult('❌ 缺少 ' + check.name, 'error');
+          }
+        });
+
+        // 总结
+        addResult('', 'info');
+        if (testData.errors.length === 0) {
+          addResult('🎉 所有测试通过！没有发现错误。', 'success');
+          addResult('💡 建议：现在可以打开主页面 (http://127.0.0.1:33210) 手动测试角色切换功能', 'info');
+        } else {
+          addResult('⚠️ 发现 ' + testData.errors.length + ' 个错误', 'error');
+        }
+
+        if (testData.warnings.length > 0) {
+          addResult('⚠️ 发现 ' + testData.warnings.length + ' 个警告', 'warning');
+        }
+
+      } catch (error) {
+        addResult('❌ 测试失败: ' + error.message, 'error');
+        addConsole('Fatal error: ' + error.message, 'error');
+      }
+    }
+
+    async function testCharacterSwitch() {
+      addResult('🔄 开始测试角色切换功能...', 'info');
+      addResult('💡 此测试需要在主页面 (http://127.0.0.1:33210) 中进行', 'info');
+      addResult('📝 测试步骤:', 'info');
+      addResult('1. 打开主页面', 'info');
+      addResult('2. 等待 Live2D 角色加载完成', 'info');
+      addResult('3. 点击右下角的 🎭 按钮', 'info');
+      addResult('4. 观察角色是否切换成功', 'info');
+      addResult('5. 打开浏览器控制台 (F12) 查看是否有错误', 'info');
+      addResult('6. 重复点击 🎭 按钮，测试所有 ' + testData.characters.length + ' 个角色', 'info');
+
+      window.open('http://127.0.0.1:33210', '_blank');
+    }
+
+    // 页面加载时自动运行测试
+    window.addEventListener('load', function() {
+      addResult('✨ 测试页面已加载，点击"运行所有测试"按钮开始', 'info');
+    });
+  </script>
+</body>
+</html>

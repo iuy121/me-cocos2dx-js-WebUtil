@@ -1,0 +1,37 @@
+[
+  {
+    "id": "pio",
+    "name": "Pio",
+    "label": "Pio（原版）",
+    "path": "pio",
+    "preview": "pio/school/textures/texture_00.png"
+  },
+  {
+    "id": "shizuku",
+    "name": "Shizuku",
+    "label": "雫（Shizuku）",
+    "path": "shizuku",
+    "preview": "shizuku/moc/shizuku.1024/texture_00.png"
+  },
+  {
+    "id": "haru",
+    "name": "Haru",
+    "label": "春（Haru）",
+    "path": "haru",
+    "preview": "haru/01/moc/haru01.1024/texture_00.png"
+  },
+  {
+    "id": "hibiki",
+    "name": "Hibiki",
+    "label": "响（Hibiki）",
+    "path": "hibiki",
+    "preview": "hibiki/moc/hibiki.2048/texture_00.png"
+  },
+  {
+    "id": "hijiki",
+    "name": "Hijiki",
+    "label": "ひじき（Hijiki）",
+    "path": "hijiki",
+    "preview": "hijiki/moc/hijiki.2048/texture_00.png"
+  }
+]

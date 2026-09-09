@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>七星玩法UI映射</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=bc11c703122c">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=bc11c703122c">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=bc11c703122c">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=bc11c703122c">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #5e6b80;
+      --line: #dfe5ee;
+      --head: #eef3f8;
+      --accent: #1f7a8c;
+      --accent-soft: #e6f3f5;
+      --warn: #8a5a00;
+      --warn-soft: #fff7df;
+      --code: #15263a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    main {
+      width: min(1440px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .meta-item {
+      min-height: 74px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .meta-label {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .meta-value {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .field select,
+    .field input {
+      min-height: 38px;
+      min-width: 180px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    .field input {
+      min-width: 260px;
+    }
+
+    .field select:focus,
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(31, 122, 140, 0.14);
+    }
+
+    .ghost-btn {
+      min-height: 38px;
+      padding: 7px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .ghost-btn:hover,
+    .ghost-btn:focus-visible {
+      border-color: var(--accent);
+      color: var(--accent);
+      outline: none;
+    }
+
+    .result-count {
+      min-width: 78px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 28px rgba(22, 34, 51, 0.08);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1520px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--head);
+      color: #243044;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: left;
+      user-select: none;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      position: relative;
+      padding-right: 16px;
+    }
+
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .col-resizer::after {
+      position: absolute;
+      top: 25%;
+      right: 3px;
+      width: 1px;
+      height: 50%;
+      background: #b8c3d2;
+      content: "";
+    }
+
+    .col-resizer:hover::after,
+    body.is-resizing .col-resizer::after {
+      width: 2px;
+      background: var(--accent);
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fbfcfe;
+    }
+
+    tbody tr:hover {
+      background: var(--accent-soft);
+    }
+
+    tbody tr.is-hidden {
+      display: none;
+    }
+
+    .empty-row td {
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-row.is-hidden {
+      display: none;
+    }
+
+    code {
+      display: inline-block;
+      max-width: 100%;
+      color: var(--code);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .tag {
+      display: inline-block;
+      min-width: 44px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .source-cell {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .source-cell summary {
+      color: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .source-cell summary:focus-visible {
+      border-radius: 6px;
+      box-shadow: 0 0 0 3px rgba(31, 122, 140, 0.14);
+    }
+
+    .source-list {
+      display: flex;
+      max-height: 180px;
+      margin-top: 6px;
+      overflow: auto;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+    }
+
+    .source-list code,
+    .source-cell > code {
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--muted);
+    }
+
+    .branch {
+      color: var(--warn);
+      background: var(--warn-soft);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .footnote {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 24px, 1440px);
+        padding-top: 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .meta {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .field,
+      .field select,
+      .field input,
+      .ghost-btn {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .result-count {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>七星玩法UI映射</h1>
+
+    <section class="meta" aria-label="统计信息">
+      <div class="meta-item">
+        <div class="meta-label">覆盖玩法</div>
+        <div class="meta-value">60 条</div>
+        <div class="note">麻将 22 条，扑克 12 条，字牌 26 条</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">主要入口</div>
+        <div class="meta-value"><code>CreateRoomPanel.js</code> / <code>NetCallBack.js</code></div>
+        <div class="note">创建房间与进桌场景分发</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">整理口径</div>
+        <div class="meta-value">LocalConfig ∩ gameListConfig + QXYYQP</div>
+        <div class="note">32 个玩法有有效来源，27 个仅 LocalConfig 出现，原表保留 1 个玩法</div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="查询工具">
+      <div class="filters">
+        <div class="field">
+          <label for="categoryFilter">大类型</label>
+          <select id="categoryFilter">
+            <option value="">全部</option>
+            <option value="麻将">麻将</option>
+            <option value="扑克">扑克</option>
+            <option value="字牌">字牌</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="nameSearch">玩法ID / 玩法名</label>
+          <input id="nameSearch" type="search" placeholder="输入玩法ID或玩法名模糊检索" autocomplete="off">
+        </div>
+        <button class="ghost-btn" id="resetFilter" type="button">重置</button>
+      </div>
+      <div class="result-count" id="resultCount" aria-live="polite">共 60 条</div>
+    </section>
+
+    <div class="table-wrap">
+      <table aria-label="玩法 UI 映射明细">
+        <colgroup>
+          <col style="width: 72px">
+          <col style="width: 96px">
+          <col style="width: 190px">
+          <col style="width: 130px">
+          <col style="width: 230px">
+          <col style="width: 210px">
+          <col style="width: 220px">
+          <col style="width: 230px">
+          <col style="width: 230px">
+          <col style="width: 260px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>分类</th>
+            <th>玩法 ID</th>
+            <th>枚举名</th>
+            <th>玩法名</th>
+            <th>来源客户端</th>
+            <th>创建房间 UI</th>
+            <th>游戏场景 UI</th>
+            <th>小结算 UI</th>
+            <th>大结算 UI</th>
+            <th>备注 / 依据</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-game-id="2017032">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2017032</code></td>
+            <td><code>CHANG_SHA</code></td>
+            <td>长沙麻将</td>
+            <td><code>CreateRoomNode_changSha</code></td>
+            <td><code>majiang_panel_changSha</code></td>
+            <td><code>majiang_winGamePanel_changSha</code></td>
+            <td><code>majiang_gameOver_changSha</code></td>
+            <td class="note">进桌在 <code>NetCallBack.js</code> 的 QXYYQP 分支走新版麻将面板。</td>
+          </tr>
+          <tr data-game-id="2017053">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2017053</code></td>
+            <td><code>ML_HONGZHONG</code></td>
+            <td>红中麻将</td>
+            <td><code>CreateRoomNode_MLHZ</code></td>
+            <td><code>majiang_panel_MLHZ</code></td>
+            <td><code>majiang_winGamePanel_MLHZ</code></td>
+            <td><code>majiang_gameOver_yueyang</code></td>
+            <td class="note">大结算继承 <code>majiang_panel_yueyang</code> 默认实现。</td>
+          </tr>
+          <tr data-game-id="2018150">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018150</code></td>
+            <td><code>TAO_JIANG_MA_JIANG</code></td>
+            <td>桃江麻将</td>
+            <td><code>CreateRoomNode_taoJiang</code></td>
+            <td><code>PlayLayer_taoJiang</code></td>
+            <td><code>EndOneView_taoJiang</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="branch">当前进桌代码使用旧 <code>PlayLayer_taoJiang</code>；新版 <code>majiang_panel_taoJiang</code> 分支在进桌处未启用。</td>
+          </tr>
+          <tr data-game-id="2018101">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018101</code></td>
+            <td><code>XIANG_YIN_TUI_DAO_HU</code></td>
+            <td>湘阴推倒胡</td>
+            <td><code>CreateRoomNode_xiangyintuidaohu</code></td>
+            <td><code>majiang_panel_xiangyintuidaohu</code></td>
+            <td><code>EndOneView_xiangyintuidaohu_new</code></td>
+            <td><code>GameOverLayer_maJiang_xiangyintuidaohu</code></td>
+            <td class="note">面板内通过 <code>createEndOneLayer</code> 和 <code>createGameOverLayer</code> 返回。</td>
+          </tr>
+          <tr data-game-id="2017039">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2017039</code></td>
+            <td><code>TY_ZHUANZHUAN</code></td>
+            <td>转转麻将</td>
+            <td><code>CreateRoomNode_TYZZ</code></td>
+            <td><code>majiang_panel_TYZZ</code></td>
+            <td><code>majiang_winGamePanel_TYZZ</code></td>
+            <td><code>majiang_gameOver_yueyang</code></td>
+            <td class="note">大结算继承 <code>majiang_panel_yueyang</code> 默认实现。</td>
+          </tr>
+          <tr data-game-id="2018108">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018108</code></td>
+            <td><code>YUE_YANG_HONG_ZHONG</code></td>
+            <td>岳阳红中</td>
+            <td><code>CreateRoomNode_yueyanghongzhong</code></td>
+            <td><code>majiang_panel_yueYangHongZhong</code></td>
+            <td><code>majiang_winGamePanel_yueyang</code></td>
+            <td><code>majiang_gameOverPanel_yueYangHongZhong</code></td>
+            <td class="branch">QXYYQP 分支走新版面板；小结算继承岳阳通用实现，大结算由面板覆写。</td>
+          </tr>
+          <tr data-game-id="2018119">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018119</code></td>
+            <td><code>MJ_ZHUO_XIA_ZI</code></td>
+            <td>捉虾子</td>
+            <td><code>CreateRoomNode_zhuoxiazi</code></td>
+            <td><code>PlayLayer_zhuoxiazi</code></td>
+            <td><code>EndOneView_zhuoxiazi</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">当前进桌代码使用旧 <code>PlayLayer_zhuoxiazi</code>。</td>
+          </tr>
+          <tr data-game-id="2018134">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018134</code></td>
+            <td><code>AN_HUA_MA_JIANG</code></td>
+            <td>安化七王麻将</td>
+            <td><code>CreateRoomNode_anhuaMaJiang</code></td>
+            <td><code>majiang_panel_anHuaQiWang</code></td>
+            <td><code>majiang_winGamePanel_anHuaQiWang</code></td>
+            <td><code>majiang_gameOver_yueyang</code></td>
+            <td class="note">大结算继承 <code>majiang_panel_yueyang</code> 默认实现。</td>
+          </tr>
+          <tr data-game-id="2018144">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018144</code></td>
+            <td><code>AN_HUA_MA_JIANG_SW</code></td>
+            <td>安化四王麻将</td>
+            <td><code>CreateRoomNode_anhuaMaJiangSW</code></td>
+            <td><code>PlayLayer_anhuaMaJiangSW</code></td>
+            <td><code>EndOneView_anhuaMaJiangSW</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">进桌在 <code>NetCallBack.js</code> 中直接创建旧麻将面板。</td>
+          </tr>
+          <tr data-game-id="2018147">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018147</code></td>
+            <td><code>NING_XIANG_KAI_WANG</code></td>
+            <td>宁乡开王麻将</td>
+            <td><code>CreateRoomNode_ningXiangKaiWang</code></td>
+            <td><code>PlayLayer_ningXiangKaiWang</code></td>
+            <td><code>EndOneView_ningXiangKaiWang</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">进桌在 <code>NetCallBack.js</code> 中直接创建旧麻将面板。</td>
+          </tr>
+          <tr data-game-id="2018151">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018151</code></td>
+            <td><code>YUE_YANG_YI_JIAO_LAI_YOU</code></td>
+            <td>一脚赖油</td>
+            <td><code>CreateRoomNode_yiJiaoLaiYou</code></td>
+            <td><code>PlayLayer_yiJiaoLaiYou</code></td>
+            <td><code>EndOneView_YiJiaoLaiYou</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">当前工程保留岳阳一脚赖油旧面板路径。</td>
+          </tr>
+          <tr data-game-id="2018154">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018154</code></td>
+            <td><code>YI_YANG_MA_JIANG</code></td>
+            <td>益阳麻将</td>
+            <td><code>CreateRoomNode_yiYangMJ</code></td>
+            <td><code>playPanel_yiYangMaJiang</code></td>
+            <td><code>EndOneView_yiYang</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="branch">进桌启用新版 <code>playPanel_yiYangMaJiang</code>，旧 <code>PlayLayer_yiYangMJ</code> 分支被注释。</td>
+          </tr>
+          <tr data-game-id="2018156">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018156</code></td>
+            <td><code>CHEN_ZHOU</code></td>
+            <td>郴州麻将</td>
+            <td><code>CreateRoomNode_chenzhou</code></td>
+            <td><code>PlayLayer_chenzhou</code></td>
+            <td><code>EndOneView_chenzhou</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算在玩法面板内直接创建通用 <code>GameOverLayer</code>。</td>
+          </tr>
+          <tr data-game-id="2018157">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018157</code></td>
+            <td><code>YUAN_JIANG_MJ</code></td>
+            <td>沅江麻将</td>
+            <td><code>CreateRoomNode_yuanjiang</code></td>
+            <td><code>PlayLayer_yuanjiang</code></td>
+            <td><code>EndOneView_yuanjiang</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="branch">当前进桌代码走旧 <code>PlayLayer_yuanjiang</code>；新版面板存在但未在进桌处启用。</td>
+          </tr>
+          <tr data-game-id="2018160">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018160</code></td>
+            <td><code>NING_XIANG_MJ</code></td>
+            <td>宁乡麻将</td>
+            <td><code>CreateRoomNode_ningxiang</code></td>
+            <td><code>PlayLayer_ningxiang</code></td>
+            <td><code>EndOneView_ningxiang</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">进桌在 <code>NetCallBack.js</code> 中直接创建旧麻将面板。</td>
+          </tr>
+          <tr data-game-id="2018162">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018162</code></td>
+            <td><code>PING_JIANG_ZHA_NIAO</code></td>
+            <td>平江扎鸟</td>
+            <td><code>CreateRoomNode_pingjiangzhaniao</code></td>
+            <td><code>PlayLayer_pingjiangzhaniao</code></td>
+            <td><code>EndOneView_pingjiangzhaniao</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="branch">新版 <code>majiang_panel_pingjiangzhaniao</code> 存在，但当前进桌代码使用旧面板。</td>
+          </tr>
+          <tr data-game-id="2018166">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018166</code></td>
+            <td><code>CHAO_GU_MJ</code></td>
+            <td>炒股麻将</td>
+            <td><code>CreateRoomNode_chaogu</code></td>
+            <td><code>PlayLayer_chaogu</code></td>
+            <td><code>EndOneView_chaogu</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算在玩法面板内直接创建通用 <code>GameOverLayer</code>。</td>
+          </tr>
+          <tr data-game-id="2018168">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2018168</code></td>
+            <td><code>NAN_XIAN_MJ</code></td>
+            <td>南县麻将</td>
+            <td><code>CreateRoomNode_nanxian</code></td>
+            <td><code>PlayLayer_nanxian</code></td>
+            <td><code>EndOneView_nanxian</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算在玩法面板内直接创建通用 <code>GameOverLayer</code>。</td>
+          </tr>
+          <tr data-game-id="2019209">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2019209</code></td>
+            <td><code>CHANG_SHA_ER_REN</code></td>
+            <td>二人缺门长麻</td>
+            <td><code>CreateRoomNode_changSha</code></td>
+            <td><code>majiang_panel_changSha</code></td>
+            <td><code>majiang_winGamePanel_changSha</code></td>
+            <td><code>majiang_gameOver_changSha</code></td>
+            <td class="note">创建房间与长沙麻将共用节点，进入时通过 <code>data.isErRen = true</code> 区分。</td>
+          </tr>
+          <tr data-game-id="2019214">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2019214</code></td>
+            <td><code>GUI_ZHOU_REN_HUAI_MJ</code></td>
+            <td>贵州仁怀麻将</td>
+            <td><span class="branch">当前工程未接入</span></td>
+            <td><span class="branch">当前工程未接入</span></td>
+            <td><span class="branch">当前工程未接入</span></td>
+            <td><span class="branch">当前工程未接入</span></td>
+            <td class="branch">多个客户端 <code>LocalConfig.js</code> 已开放；当前工程仅找到枚举和玩法说明，未在 <code>CreateRoomPanel.js</code> / <code>NetCallBack.js</code> 找到 UI 分支。</td>
+          </tr>
+          <tr data-game-id="2019216">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2019216</code></td>
+            <td><code>ER_REN_YI_FANG_MJ</code></td>
+            <td>急速8张麻将</td>
+            <td><code>CreateRoomNode_erRenYiFang</code></td>
+            <td><code>majiang_panel_erRenYiFang</code></td>
+            <td><code>majiang_winGamePanel_erRenYiFang</code></td>
+            <td><code>majiang_gameOver_yueyang</code></td>
+            <td class="branch">面板按 AppType 继承不同通用麻将基类；当前 QXYYQP 口径继承岳阳大结算。</td>
+          </tr>
+          <tr data-game-id="2019248">
+            <td><span class="tag">麻将</span></td>
+            <td><code>2019248</code></td>
+            <td><code>HUANG_SHI_HH_MJ</code></td>
+            <td>黄石晃晃</td>
+            <td><code>CreateRoomNode_huangShiHHMJ</code></td>
+            <td><code>majiang_panel_huangShiHHMJ</code></td>
+            <td><code>majiang_winGamePanel_huangShiHHMJ</code></td>
+            <td><code>majiang_gameOver_hubei</code></td>
+            <td class="branch">仅 <code>mjclient_bingxue</code> 的 <code>LocalConfig.js</code> 开放；当前工程已有创建和进桌实现。</td>
+          </tr>
+
+          <tr data-game-id="2017036">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2017036</code></td>
+            <td><code>PAO_DE_KUAI_TY</code></td>
+            <td>通用跑得快</td>
+            <td><code>CreateRoomNode_PaoDeKuaiTY</code></td>
+            <td><code>PlayLayer_PaoDeKuaiTY</code></td>
+            <td><code>EndOneView_PaoDeKuaiTY</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="branch">金币场且 <code>GoldField_PlayLayer_PaoDeKuaiTY</code> 存在时，游戏场景改走金币场面板。</td>
+          </tr>
+          <tr data-game-id="2017042">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2017042</code></td>
+            <td><code>SAN_DA_HA</code></td>
+            <td>三打哈</td>
+            <td><code>CreateRoomNode_sanDaHa</code></td>
+            <td><code>PlayLayer_sanDaHa</code></td>
+            <td><code>EndOneView_sanDaHa</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算在 <code>endRoom</code> 和最终局 <code>roundEnd</code> 中直接创建。</td>
+          </tr>
+          <tr data-game-id="2019187">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2019187</code></td>
+            <td><code>SAN_DA_HA_NEW</code></td>
+            <td>新三打哈</td>
+            <td><code>CreateRoomNode_sanDaHaNew</code></td>
+            <td><code>PlayLayer_sanDaHaNew</code></td>
+            <td><code>EndOneView_sanDaHaNew</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算在 <code>endRoom</code> 和最终局 <code>roundEnd</code> 中直接创建。</td>
+          </tr>
+          <tr data-game-id="2018155">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2018155</code></td>
+            <td><code>YUE_YANG_YUAN_JIANG_QIAN_FEN</code></td>
+            <td>岳阳沅江千分</td>
+            <td><code>CreateRoomNode_RuanJiangQianFenYueYang</code></td>
+            <td><code>PlayLayer_ruanjiangqianfen</code></td>
+            <td><code>EndOneView_ruanJiangQianFenYueYang</code></td>
+            <td><code>GameOverLayer_ruanjiangqianfen</code></td>
+            <td class="note">类名中保留工程内既有 <code>RuanJiang</code> 拼写。</td>
+          </tr>
+          <tr data-game-id="2017034">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2017034</code></td>
+            <td><code>DOU_DI_ZHU_TY</code></td>
+            <td>欢乐斗地主</td>
+            <td><code>CreateRoomNode_doudizhuTY</code></td>
+            <td><code>PlayLayer_doudizhuTongYong</code></td>
+            <td><code>EndOneView_doudizhuTY</code></td>
+            <td><code>GameOverLayer_doudizhu</code></td>
+            <td class="note">当前工程通用斗地主进桌走 <code>poker_doudizhuTY</code> 面板。</td>
+          </tr>
+          <tr data-game-id="2018107">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2018107</code></td>
+            <td><code>YUE_YANG_SAN_DA_HA</code></td>
+            <td>岳阳三打哈</td>
+            <td><code>CreateRoomNode_sanDaHaYueyang</code></td>
+            <td><code>PlayLayer_sanDaHaYueyang</code></td>
+            <td><code>EndOneView_sanDaHaYueyang</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算复用通用 <code>GameOverLayer</code> 分发。</td>
+          </tr>
+          <tr data-game-id="2018145">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2018145</code></td>
+            <td><code>YUE_YANG_NIU_SHI_BIE</code></td>
+            <td>株洲牛十别</td>
+            <td><code>CreateRoomNode_NiuShiBieYueYang</code></td>
+            <td><code>PlayLayer_NiuShiBieYueYang</code></td>
+            <td><code>EndOneView_NiuShiBieYueYang</code></td>
+            <td><code>GameOverLayer_niushibie</code></td>
+            <td class="note">小结算与株洲打码子共用 <code>EndOneView_NiuShiBieYueYang</code> 基础实现。</td>
+          </tr>
+          <tr data-game-id="2018152">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2018152</code></td>
+            <td><code>DIAN_TUO</code></td>
+            <td>掂坨</td>
+            <td><code>CreateRoomNode_diantuo</code></td>
+            <td><code>PlayLayer_dianTuo</code></td>
+            <td><code>EndOneView_dianTuo</code></td>
+            <td><code>GameOverLayer_dianTuo</code></td>
+            <td class="note">大小结算均在掂坨玩法目录内实现。</td>
+          </tr>
+          <tr data-game-id="2018153">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2018153</code></td>
+            <td><code>YUE_YANG_DA_ZHA_DAN</code></td>
+            <td>打炸弹</td>
+            <td><code>CreateRoomNode_daZhaDan</code></td>
+            <td><code>PlayLayer_daZhaDan</code></td>
+            <td><code>EndOneView_daZhaDan</code></td>
+            <td><code>GameOverLayer_daZhaDan</code></td>
+            <td class="note">大小结算均在打炸弹玩法目录内实现。</td>
+          </tr>
+          <tr data-game-id="2018159">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2018159</code></td>
+            <td><code>ZHU_ZHOU_DA_MA_ZI</code></td>
+            <td>株洲打码子</td>
+            <td><code>CreateRoomNode_DaMaZiZhuZhou</code></td>
+            <td><code>PlayLayer_DaMaZiZhuZhou</code></td>
+            <td><code>EndOneView_NiuShiBieYueYang</code></td>
+            <td><code>GameOverLayer_damazi</code></td>
+            <td class="note">小结算复用牛十别小结算类，大结算走打码子专用层。</td>
+          </tr>
+          <tr data-game-id="2019205">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2019205</code></td>
+            <td><code>PAO_DE_KUAI_ELEVEN</code></td>
+            <td>11张跑得快</td>
+            <td><code>CreateRoomNode_PaoDeKuai11</code></td>
+            <td><code>PlayLayer_PaoDeKuai11</code></td>
+            <td><code>EndOneView_PaoDeKuai11</code></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="note">大结算复用通用 <code>GameOverLayer</code> 分发。</td>
+          </tr>
+          <tr data-game-id="2025301">
+            <td><span class="tag">扑克</span></td>
+            <td><code>2025301</code></td>
+            <td><code>NIU_NIU_GUO_ZI</code></td>
+            <td>锅子牛</td>
+            <td><code>CreateRoomNode_niuniuGz</code></td>
+            <td><code>PlayLayer_niuniuGuoZi</code></td>
+            <td><span class="branch">无独立小结算</span></td>
+            <td><code>GameOverLayer</code></td>
+            <td class="branch">仅 <code>mjclient_bingxue</code> 的 <code>LocalConfig.js</code> 开放；冰雪工程归类为牛牛，当前娄底工程未定义该枚举。</td>
+          </tr>
+
+          <tr data-game-id="2018126">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018126</code></td>
+            <td><code>YUE_YANG_WAI_HU_ZI</code></td>
+            <td>岳阳歪胡子</td>
+            <td><code>CreateRoomNode_YueYangWaiHuZi</code></td>
+            <td><code>playLayer_yueYangWaiHuZi</code></td>
+            <td><code>EndOneView_YueYangWaiHuZi</code></td>
+            <td><code>GameOverLayer_YueYangWaiHuZi</code></td>
+            <td class="note">结算层由玩法面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018128">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018128</code></td>
+            <td><code>YUE_YANG_FU_LU_SHOU</code></td>
+            <td>岳阳福禄寿</td>
+            <td><code>CreateRoomNode_FuLuShou</code></td>
+            <td><code>PlayLayer_fuLuShou</code></td>
+            <td><code>EndOneView_FuLuShou</code></td>
+            <td><code>GameOverLayer_FuLuShou</code></td>
+            <td class="note">进桌代码写法为 <code>new PlayLayer_fuLuShou</code>，未带括号。</td>
+          </tr>
+          <tr data-game-id="2018164">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018164</code></td>
+            <td><code>CHANG_DE_PAO_HU_ZI</code></td>
+            <td>常德跑胡子</td>
+            <td><code>CreateRoomNode_changDePaoHuZi</code></td>
+            <td><code>playPanel_changDePaoHuzi</code></td>
+            <td><code>EndOneView_changDePaoHuZi_new</code></td>
+            <td><code>GameOverLayer_changDePaoHuZi</code></td>
+            <td class="note">小结算使用新版 <code>EndOneView_changDePaoHuZi_new</code>。</td>
+          </tr>
+          <tr data-game-id="2018122">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018122</code></td>
+            <td><code>XIANG_TAN_PAO_HU_ZI</code></td>
+            <td>湘潭跑胡子</td>
+            <td><code>CreateRoomNode_xiangtanPHZ</code></td>
+            <td><code>PlayLayer_xiangtanPHZ</code></td>
+            <td><code>EndOneView_xiangtanPHZ</code></td>
+            <td><code>GameOverLayer_syLoudi</code></td>
+            <td class="branch">当前 QXYYQP 默认走旧 <code>PlayLayer_xiangtanPHZ</code>；其他 App 分支可能走 <code>playPanel_xiangTanPHZ</code>。</td>
+          </tr>
+          <tr data-game-id="2018149">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018149</code></td>
+            <td><code>YI_YANG_WAI_HU_ZI</code></td>
+            <td>益阳歪胡子</td>
+            <td><code>CreateRoomNode_YiYangWaiHuZi</code></td>
+            <td><code>playLayer_yiYangWaiHuZi</code></td>
+            <td><code>EndOneView_YiYangWaiHuZi</code></td>
+            <td><code>GameOverLayer_YiYangWaiHuZi</code></td>
+            <td class="note">结算层由玩法面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018167">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018167</code></td>
+            <td><code>NAN_XIAN_GUI_HU_ZI</code></td>
+            <td>南县鬼胡子</td>
+            <td><code>CreateRoomNode_NanXianGuiHuZi</code></td>
+            <td><code>playPanel_nanXianGuiHuZi</code></td>
+            <td><code>EndOneView_NanXianGuiHuZi</code></td>
+            <td><code>GameOverLayer_NanXianGuiHuZi</code></td>
+            <td class="note">结算层由玩法面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018114">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018114</code></td>
+            <td><code>HY_ER_PAO_HU_ZI</code></td>
+            <td>衡阳二人跑胡子</td>
+            <td><code>CreateRoomNode_BDHYERenPaoHuZi</code></td>
+            <td><code>PlayLayer_hyERenPaoHuZi</code></td>
+            <td><code>EndOneView_hyZiPai</code></td>
+            <td><code>GameOverLayer_HYZiPai</code></td>
+            <td class="branch">当前 QXYYQP 默认走 <code>PlayLayer_hyERenPaoHuZi</code>；部分 App 分支可能走 <code>playPanel_syERenPaoHuZi</code>。</td>
+          </tr>
+          <tr data-game-id="2018112">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018112</code></td>
+            <td><code>XIANG_YIN_ZHUO_HONG_ZI</code></td>
+            <td>湘阴捉红字</td>
+            <td><code>CreateRoomNode_xyHongZi</code></td>
+            <td><code>playPanel_xyHongZi</code></td>
+            <td><code>EndOneView_xyHongZi</code></td>
+            <td><code>GameOverLayer_xyHongZi</code></td>
+            <td class="note">进桌代码写法为 <code>new playPanel_xyHongZi</code>，未带括号。</td>
+          </tr>
+          <tr data-game-id="2018092">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018092</code></td>
+            <td><code>ML_HONG_ZI</code></td>
+            <td>汨罗红字</td>
+            <td><code>CreateRoomNode_HongZi</code></td>
+            <td><code>playPanel_Hongzi</code></td>
+            <td><code>EndOneView_HongZi</code></td>
+            <td><code>GameOverLayer_HongZi</code></td>
+            <td class="note">类名大小写按工程现状保留：场景为 <code>playPanel_Hongzi</code>。</td>
+          </tr>
+          <tr data-game-id="2018148">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018148</code></td>
+            <td><code>YUE_YANG_PENG_HU</code></td>
+            <td>岳阳碰胡</td>
+            <td><code>CreateRoomNode_yueYangPengHu</code></td>
+            <td><code>PlayLayer_yueYangPengHu</code></td>
+            <td><code>EndOneView_yueYangPengHu</code></td>
+            <td><code>GameOverLayer_yueYangPengHu</code></td>
+            <td class="branch">BDHYZP 分支会改用 <code>GameOverLayer_HYZiPai</code>；当前 QXYYQP 使用岳阳碰胡自己的大结算。</td>
+          </tr>
+          <tr data-game-id="2017043">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2017043</code></td>
+            <td><code>HY_LIU_HU_QIANG</code></td>
+            <td>衡阳六胡抢</td>
+            <td><code>CreateRoomNode_liuHuQiang</code></td>
+            <td><code>playPanel_liuHuQiang</code></td>
+            <td><code>EndOneView_liuHuQiang</code></td>
+            <td><code>GameOverLayer_liuHuQiang</code></td>
+            <td class="note">结算层由玩法面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2017044">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2017044</code></td>
+            <td><code>HY_SHI_HU_KA</code></td>
+            <td>衡阳十胡卡</td>
+            <td><code>CreateRoomNode_syShiHuKa</code></td>
+            <td><code>PlayLayer_hyShiHuKa</code></td>
+            <td><code>EndOneView_zplychz</code></td>
+            <td><code>GameOverLayer_syZiPai</code></td>
+            <td class="branch">当前 QXYYQP 既非 HUNANWANGWANG/QXSYDTZ，也非 BDHYZP，因此小结算走 <code>EndOneView_zplychz</code>。</td>
+          </tr>
+          <tr data-game-id="2017028">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2017028</code></td>
+            <td><code>ZP_LY_CHZ</code></td>
+            <td>耒阳字牌</td>
+            <td><code>CreateRoomNode_zplychz_lyg</code></td>
+            <td><code>playPanel_zplychz_lyg</code></td>
+            <td><code>EndOneView_zplychz_lyg</code></td>
+            <td><code>GameOverLayer_zplychz</code></td>
+            <td class="note">结算层由耒阳字牌面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018080">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018080</code></td>
+            <td><code>LOU_DI_FANG_PAO_FA</code></td>
+            <td>娄底放炮罚</td>
+            <td><code>CreateRoomNode_loudifpf</code></td>
+            <td><code>PlayLayer_loudifpf</code></td>
+            <td><code>EndOneView_ldfpf</code></td>
+            <td><code>GameOverLayer_syLoudi</code></td>
+            <td class="branch">仅 <code>mjclient_xiangyou</code> 的 <code>LocalConfig.js</code> 开放；当前工程已有完整创建、进桌和结算实现。</td>
+          </tr>
+          <tr data-game-id="2018139">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018139</code></td>
+            <td><code>YY_AN_HUA_PAO_HU_ZI</code></td>
+            <td>安化跑胡子</td>
+            <td><code>CreateRoomNode_ahPaoHuZi</code></td>
+            <td><code>playPanel_ahPaoHuZi</code></td>
+            <td><code>EndOneView_ahPaoHuZi</code></td>
+            <td><code>GameOverLayer_ahPaoHuZi</code></td>
+            <td class="branch">金币场会改走 <code>PlayLayer_ahPaoHuZi</code> / <code>EndOneView_ahPaoHuZiGold</code>。</td>
+          </tr>
+          <tr data-game-id="2018142">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018142</code></td>
+            <td><code>CHEN_ZHOU_ZI_PAI</code></td>
+            <td>郴州字牌</td>
+            <td><code>CreateRoomNode_chenZhouZiPai</code></td>
+            <td><code>playLayer_chenZhouZiPai</code></td>
+            <td><code>EndOneView_chenZhouZiPai</code></td>
+            <td><code>GameOverLayer_chenZhouZiPai</code></td>
+            <td class="note">结算层由郴州字牌面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018143">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018143</code></td>
+            <td><code>GUI_YANG_ZI_PAI</code></td>
+            <td>桂阳字牌</td>
+            <td><code>CreateRoomNode_guiYangZiPai</code></td>
+            <td><code>playLayer_chenZhouZiPai</code></td>
+            <td><code>EndOneView_chenZhouZiPai</code></td>
+            <td><code>GameOverLayer_chenZhouZiPai</code></td>
+            <td class="branch">进桌代码注明桂阳字牌暂用郴州字牌逻辑，创建房间节点独立。</td>
+          </tr>
+          <tr data-game-id="2018146">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018146</code></td>
+            <td><code>NING_XIANG_PAO_HU_ZI</code></td>
+            <td>宁乡跑胡子</td>
+            <td><code>CreateRoomNode_ningXiangPaoHuZi</code></td>
+            <td><code>playLayer_ningXiangPaoHuZi</code></td>
+            <td><code>EndOneView_ningXiangPaoHuZi</code></td>
+            <td><code>GameOverLayer_ningXiangPaoHuZi</code></td>
+            <td class="note">结算层由宁乡跑胡子面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018158">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018158</code></td>
+            <td><code>CHEN_ZHOU_MAO_HU_ZI</code></td>
+            <td>郴州毛胡子</td>
+            <td><code>CreateRoomNode_chenZhouMaoHuZi</code></td>
+            <td><code>playLayer_chenZhouMaoHuZi</code></td>
+            <td><code>EndOneView_chenZhouMaoHuZi</code></td>
+            <td><code>GameOverLayer_chenZhouMaoHuZi</code></td>
+            <td class="note">结算层由郴州毛胡子面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018161">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018161</code></td>
+            <td><code>XIANG_XI_2710</code></td>
+            <td>湘西2710</td>
+            <td><code>CreateRoomNode_xiangXiRQS</code></td>
+            <td><code>PlayLayer_xiangXiRQS</code></td>
+            <td><code>EndOneView_xiangXiRQS</code></td>
+            <td><code>GameOverLayer_xiangXiRQS</code></td>
+            <td class="note">大小结算均在湘西2710玩法目录内实现。</td>
+          </tr>
+          <tr data-game-id="2018163">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018163</code></td>
+            <td><code>FU_LU_SHOU_ER_SHI_ZHANG</code></td>
+            <td>福禄寿20张</td>
+            <td><code>CreateRoomNode_FuLuShouErShiZhang</code></td>
+            <td><code>PlayLayer_fuLuShou</code></td>
+            <td><code>EndOneView_FuLuShou</code></td>
+            <td><code>GameOverLayer_FuLuShou</code></td>
+            <td class="note">进桌与岳阳福禄寿共用 <code>PlayLayer_fuLuShou</code>。</td>
+          </tr>
+          <tr data-game-id="2018165">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018165</code></td>
+            <td><code>HAN_SHOU_PAO_HU_ZI</code></td>
+            <td>汉寿跑胡子</td>
+            <td><code>CreateRoomNode_hanShouPaoHuZi</code></td>
+            <td><code>playLayer_hanShouPaoHuZi</code></td>
+            <td><code>EndOneView_hanShouPaoHuZi</code></td>
+            <td><code>GameOverLayer_hanShouPaoHuZi</code></td>
+            <td class="note">结算层由汉寿跑胡子面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2018172">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2018172</code></td>
+            <td><code>YUAN_JIANG_GUI_HU_ZI</code></td>
+            <td>沅江鬼胡子</td>
+            <td><code>CreateRoomNode_YuanJiangGuiHuZi</code></td>
+            <td><code>PlayPanel_YuanJiangGuiHuZi</code></td>
+            <td><code>EndOneView_YuanJiangGuiHuZi</code></td>
+            <td><code>GameOverLayer_YuanJiangGuiHuZi</code></td>
+            <td class="branch">QXYYQP 分支走新版 <code>PlayPanel_YuanJiangGuiHuZi</code>，其他 AppType 可能走旧面板。</td>
+          </tr>
+          <tr data-game-id="2019177">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2019177</code></td>
+            <td><code>SHI_MEN_PAO_HU_ZI</code></td>
+            <td>石门跑胡子</td>
+            <td><code>CreateRoomNode_shiMenPaoHuZi</code></td>
+            <td><code>playPanel_shiMenPaoHuzi</code></td>
+            <td><code>EndOneView_shiMenPaoHuZi</code></td>
+            <td><code>GameOverLayer_shiMenPaoHuZi</code></td>
+            <td class="note">类名按工程现状保留：场景为 <code>playPanel_shiMenPaoHuzi</code>。</td>
+          </tr>
+          <tr data-game-id="2019180">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2019180</code></td>
+            <td><code>AN_XIANG_WEI_MA_QUE</code></td>
+            <td>安乡偎麻雀</td>
+            <td><code>CreateRoomNode_anXiangWeiMaQue</code></td>
+            <td><code>playLayer_anXiangWeiMaQue</code></td>
+            <td><code>EndOneView_anXiangWeiMaQue</code></td>
+            <td><code>GameOverLayer_anXiangWeiMaQue</code></td>
+            <td class="note">结算层由安乡偎麻雀面板的创建方法返回。</td>
+          </tr>
+          <tr data-game-id="2019196">
+            <td><span class="tag">字牌</span></td>
+            <td><code>2019196</code></td>
+            <td><code>XIANG_XI_96POKER</code></td>
+            <td>96扑克</td>
+            <td><code>CreateRoomNode_96poker</code></td>
+            <td><code>playPanel_96poker</code></td>
+            <td><code>EndOneView_96poker</code></td>
+            <td><code>GameOverLayer_96poker</code></td>
+            <td class="note">虽然玩法名含扑克，当前工程按字牌列表和字牌面板体系归档。</td>
+          </tr>
+          <tr class="empty-row is-hidden" id="emptyRow">
+            <td colspan="10">没有找到匹配的玩法</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="footnote">
+      说明：来源客户端以同时出现在 <code>src/LocalConfig.js</code> 玩法列表与 <code>src/Logic.js</code> 的 <code>MjClient.gameListConfig</code> 为准；仅在 <code>LocalConfig.js</code> 中出现但 <code>gameListConfig</code> 未配置的不计入来源。<code>2018114</code> 为原表已有保留项。若后续切换 AppType、金币场、比赛场或启用被注释的新面板分支，请按对应分支重新核对。
+    </p>
+  </main>
+  <script>
+    (function () {
+      var table = document.querySelector("table");
+      var categoryFilter = document.getElementById("categoryFilter");
+      var nameSearch = document.getElementById("nameSearch");
+      var resetFilter = document.getElementById("resetFilter");
+      var resultCount = document.getElementById("resultCount");
+      var emptyRow = document.getElementById("emptyRow");
+      var sourceByGameId = {};
+
+      function assignSources(gameIds, clients) {
+        gameIds.forEach(function (gameId) {
+          sourceByGameId[gameId] = clients;
+        });
+      }
+
+      // 来源口径：LocalConfig 开放列表与 Logic.js 的 gameListConfig 同时存在。
+      assignSources(["2018151", "2018165", "2018168", "2019180"], ["mjclient_aiqiyi"]);
+      assignSources(["2017042", "2018150", "2019187"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient_huluwa", "mjclient_huxiangyule", "mjclient_mhxy",
+        "mjclient_qcxy", "mjclient_shunyi", "mjclient_toudengcang", "mjclient_xiangyi"
+      ]);
+      assignSources(["2018157", "2018172"], ["mjclient_ruyi", "mjclient_xile"]);
+      assignSources(["2018128", "2018149"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient_huluwa", "mjclient_huxiangyule", "mjclient_jinle",
+        "mjclient_mhxy", "mjclient_qcxy", "mjclient_shunyi", "mjclient_toudengcang",
+        "mjclient_xiangyi"
+      ]);
+      assignSources(["2017043", "2017044"], [
+        "mjclient-changyou", "mjclient-liushun", "mjclient-xiangle", "mjclient-zhongxin",
+        "mjclient-zhuoyue", "mjclient_huluwa"
+      ]);
+      assignSources(["2018142"], ["mjclient_aiqiyi", "mjclient_shunyi", "mjclient_xile", "mjclient_yunjian"]);
+      assignSources(["2018153"], ["mjclient_aiqiyi", "mjclient_xianlai"]);
+      assignSources(["2025301"], ["mjclient_bingxue"]);
+      assignSources(["2017034"], ["mjclient_jinle", "mjclient_qcxy", "mjclient_zhongle"]);
+      assignSources(["2017036"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-yaya", "mjclient-zhongxin", "mjclient-zhuoyue", "mjclient_aiqiyi",
+        "mjclient_bbbs", "mjclient_bingxue", "mjclient_disnep", "mjclient_huluwa",
+        "mjclient_huxiangyule", "mjclient_koudian", "mjclient_loudi", "mjclient_mhxy",
+        "mjclient_qcxy", "mjclient_qingyuan", "mjclient_ruyi", "mjclient_shunyi",
+        "mjclient_toudengcang", "mjclient_xiangheng", "mjclient_xiangju", "mjclient_xiangyi",
+        "mjclient_xiangzhiyuan", "mjclient_xianlai", "mjclient_xile",
+        "mjclient_yundingtiangong", "mjclient_yunduan", "mjclient_yunjian", "mjclient_zhongle"
+      ]);
+      assignSources(["2017053"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-yaya", "mjclient-zhongxin", "mjclient-zhuoyue", "mjclient_aiqiyi",
+        "mjclient_bbbs", "mjclient_bingxue", "mjclient_disnep", "mjclient_huluwa",
+        "mjclient_huxiangyule", "mjclient_loudi", "mjclient_mhxy", "mjclient_qcxy",
+        "mjclient_qingyuan", "mjclient_ruyi", "mjclient_shunyi", "mjclient_toudengcang",
+        "mjclient_xiangheng", "mjclient_xiangju", "mjclient_xiangyi", "mjclient_xiangzhiyuan",
+        "mjclient_xianlai", "mjclient_xile", "mjclient_yundingtiangong", "mjclient_yunduan",
+        "mjclient_yunjian"
+      ]);
+      assignSources(["2018164"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient_aiqiyi", "mjclient_bingxue", "mjclient_huluwa",
+        "mjclient_huxiangyule", "mjclient_jinle", "mjclient_mhxy", "mjclient_qcxy",
+        "mjclient_shunyi", "mjclient_toudengcang", "mjclient_xiangyi"
+      ]);
+      assignSources(["2018167"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient_aiqiyi", "mjclient_huluwa", "mjclient_huxiangyule",
+        "mjclient_jinle", "mjclient_mhxy", "mjclient_qcxy", "mjclient_ruyi",
+        "mjclient_shunyi", "mjclient_toudengcang", "mjclient_xiangyi", "mjclient_xile"
+      ]);
+      assignSources(["2018126"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient_aiqiyi", "mjclient_huluwa", "mjclient_huxiangyule",
+        "mjclient_jinle", "mjclient_mhxy", "mjclient_qcxy", "mjclient_shunyi",
+        "mjclient_toudengcang", "mjclient_xiangyi", "mjclient_xianlai"
+      ]);
+      assignSources(["2018155"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient_aiqiyi", "mjclient_huluwa", "mjclient_huxiangyule",
+        "mjclient_mhxy", "mjclient_qcxy", "mjclient_ruyi", "mjclient_shunyi",
+        "mjclient_toudengcang", "mjclient_xiangyi", "mjclient_xile"
+      ]);
+      assignSources(["2017032"], [
+        "mjclient-changyou", "mjclient-huihuang", "mjclient-liushun", "mjclient-xiangle",
+        "mjclient-zhongxin", "mjclient-zhuoyue", "mjclient_aiqiyi", "mjclient_bbbs",
+        "mjclient_bingxue", "mjclient_disnep", "mjclient_huluwa", "mjclient_huxiangyule",
+        "mjclient_mhxy", "mjclient_qcxy", "mjclient_qingyuan", "mjclient_ruyi",
+        "mjclient_shunyi", "mjclient_toudengcang", "mjclient_xiangheng", "mjclient_xiangju",
+        "mjclient_xiangyi", "mjclient_xiangzhiyuan", "mjclient_xianlai", "mjclient_xile",
+        "mjclient_yunduan", "mjclient_yunjian"
+      ]);
+      assignSources(["2018148"], [
+        "mjclient-changyou", "mjclient-xiangle", "mjclient_disnep", "mjclient_qingyuan",
+        "mjclient_shunyi", "mjclient_xiangju", "mjclient_xiangzhiyuan", "mjclient_xile",
+        "mjclient_yunjian"
+      ]);
+      assignSources(["2018101"], [
+        "mjclient-changyou", "mjclient-xiangle", "mjclient-zhuoyue", "mjclient_disnep",
+        "mjclient_qingyuan", "mjclient_ruyi", "mjclient_shunyi", "mjclient_xiangju",
+        "mjclient_xile", "mjclient_yunduan", "mjclient_yunjian"
+      ]);
+      assignSources(["2018092"], [
+        "mjclient-changyou", "mjclient-xiangle", "mjclient-zhuoyue", "mjclient_disnep",
+        "mjclient_qingyuan", "mjclient_shunyi", "mjclient_xiangju", "mjclient_xile",
+        "mjclient_yunjian"
+      ]);
+      assignSources(["2018112"], ["mjclient-changyou", "mjclient-xiangle", "mjclient-zhuoyue", "mjclient_yunduan"]);
+      assignSources(["2017039"], [
+        "mjclient-huihuang", "mjclient-xiangle", "mjclient_bbbs", "mjclient_disnep",
+        "mjclient_loudi", "mjclient_qingyuan", "mjclient_xiangju", "mjclient_xiangzhiyuan",
+        "mjclient_xile", "mjclient_yundingtiangong", "mjclient_yunjian"
+      ]);
+      assignSources(["2018159"], [
+        "mjclient-liushun", "mjclient-zhongxin", "mjclient_disnep", "mjclient_huluwa",
+        "mjclient_qingyuan", "mjclient_xiangju", "mjclient_xile", "mjclient_yunjian"
+      ]);
+      assignSources(["2018146"], [
+        "mjclient-liushun", "mjclient-zhongxin", "mjclient-zhuoyue", "mjclient_bbbs",
+        "mjclient_bingxue", "mjclient_disnep", "mjclient_huluwa", "mjclient_qingyuan",
+        "mjclient_shunyi", "mjclient_xiangheng", "mjclient_xiangju", "mjclient_xile",
+        "mjclient_yunjian"
+      ]);
+      assignSources(["2018160"], ["mjclient-zhuoyue", "mjclient_xiangheng"]);
+
+      var rows = Array.prototype.slice.call(table.querySelectorAll("tbody tr[data-game-id]"));
+      rows.forEach(function (row) {
+        row.insertBefore(createSourceCell(row.dataset.gameId), row.cells[4] || null);
+      });
+      var totalRows = rows.length;
+
+      function normalizeText(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function createSourceCell(gameId) {
+        var clients = sourceByGameId[gameId];
+        var cell = document.createElement("td");
+        cell.className = "source-cell";
+
+        if (!clients || clients.length === 0) {
+          var reserved = document.createElement("span");
+          reserved.className = "branch";
+          reserved.textContent = gameId === "2018114" ? "原表保留" : "未计入来源";
+          reserved.title = gameId === "2018114"
+            ? "未在 39 个 LocalConfig 客户端合集中出现"
+            : "LocalConfig 中出现，但对应客户端 Logic.js 的 MjClient.gameListConfig 未配置";
+          cell.appendChild(reserved);
+          return cell;
+        }
+
+        if (clients.length === 1) {
+          var single = document.createElement("code");
+          single.textContent = clients[0];
+          cell.appendChild(single);
+          return cell;
+        }
+
+        var details = document.createElement("details");
+        var summary = document.createElement("summary");
+        var list = document.createElement("div");
+        summary.textContent = clients.length + " 个客户端";
+        list.className = "source-list";
+        clients.forEach(function (client) {
+          var item = document.createElement("code");
+          item.textContent = client;
+          list.appendChild(item);
+        });
+        details.appendChild(summary);
+        details.appendChild(list);
+        cell.appendChild(details);
+        return cell;
+      }
+
+      function applyFilters() {
+        var category = categoryFilter.value;
+        var keyword = normalizeText(nameSearch.value);
+        var visibleCount = 0;
+
+        rows.forEach(function (row) {
+          var rowCategory = normalizeText(row.cells[0].textContent);
+          var gameId = normalizeText(row.dataset.gameId || row.cells[1].textContent);
+          var gameName = normalizeText(row.cells[3].textContent);
+          var matchedCategory = !category || rowCategory === normalizeText(category);
+          var matchedKeyword = !keyword || gameId.indexOf(keyword) !== -1 || gameName.indexOf(keyword) !== -1;
+          var visible = matchedCategory && matchedKeyword;
+
+          row.classList.toggle("is-hidden", !visible);
+          if (visible) {
+            visibleCount += 1;
+          }
+        });
+
+        emptyRow.classList.toggle("is-hidden", visibleCount > 0);
+        resultCount.textContent = "共 " + visibleCount + " 条";
+      }
+
+      categoryFilter.addEventListener("change", applyFilters);
+      nameSearch.addEventListener("input", applyFilters);
+      resetFilter.addEventListener("click", function () {
+        categoryFilter.value = "";
+        nameSearch.value = "";
+        applyFilters();
+        nameSearch.focus();
+      });
+
+      resultCount.textContent = "共 " + totalRows + " 条";
+
+      function setupColumnResize() {
+        var cols = Array.prototype.slice.call(table.querySelectorAll("col"));
+        var headers = Array.prototype.slice.call(table.querySelectorAll("thead th"));
+        var minColumnWidth = 64;
+        var columnWidths = headers.map(function (header) {
+          return Math.max(minColumnWidth, Math.round(header.getBoundingClientRect().width));
+        });
+        var activeDrag = null;
+
+        function updateTableWidth() {
+          var width = columnWidths.reduce(function (sum, item) {
+            return sum + item;
+          }, 0);
+          table.style.width = width + "px";
+        }
+
+        function setColumnWidth(index, width) {
+          columnWidths[index] = Math.max(minColumnWidth, Math.round(width));
+          cols[index].style.width = columnWidths[index] + "px";
+          updateTableWidth();
+        }
+
+        columnWidths.forEach(function (width, index) {
+          if (cols[index]) {
+            cols[index].style.width = width + "px";
+          }
+        });
+        updateTableWidth();
+
+        headers.forEach(function (header, index) {
+          if (!cols[index]) {
+            return;
+          }
+
+          var resizer = document.createElement("span");
+          resizer.className = "col-resizer";
+          resizer.setAttribute("role", "separator");
+          resizer.setAttribute("aria-orientation", "vertical");
+          resizer.setAttribute("aria-label", "调整" + header.textContent.trim() + "列宽");
+          resizer.tabIndex = 0;
+
+          resizer.addEventListener("pointerdown", function (event) {
+            event.preventDefault();
+            activeDrag = {
+              index: index,
+              startX: event.clientX,
+              startWidth: columnWidths[index]
+            };
+            document.body.classList.add("is-resizing");
+          });
+
+          resizer.addEventListener("keydown", function (event) {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+              return;
+            }
+
+            event.preventDefault();
+            var offset = event.key === "ArrowRight" ? 12 : -12;
+            setColumnWidth(index, columnWidths[index] + offset);
+          });
+
+          header.appendChild(resizer);
+        });
+
+        document.addEventListener("pointermove", function (event) {
+          if (!activeDrag) {
+            return;
+          }
+
+          var nextWidth = activeDrag.startWidth + event.clientX - activeDrag.startX;
+          setColumnWidth(activeDrag.index, nextWidth);
+        });
+
+        document.addEventListener("pointerup", function () {
+          activeDrag = null;
+          document.body.classList.remove("is-resizing");
+        });
+      }
+
+      setupColumnResize();
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>

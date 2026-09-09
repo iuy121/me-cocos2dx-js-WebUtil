@@ -1,0 +1,12 @@
+{
+  "name": "Pio",
+  "default": "school",
+  "costumes": [
+    { "key": "school",  "label": "校服",   "path": "school/model.json" },
+    { "key": "dress",   "label": "连衣裙", "path": "dress/model.json" },
+    { "key": "sport",   "label": "运动服", "path": "sport/model.json" },
+    { "key": "bikini",  "label": "泳装",   "path": "bikini/model.json" },
+    { "key": "bath",    "label": "浴巾",   "path": "bath/model.json" },
+    { "key": "yellow",  "label": "黄裙",   "path": "yellow/model.json" }
+  ]
+}

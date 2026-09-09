@@ -1,0 +1,22 @@
+{
+  "batchId": "2409a273aede",
+  "createdAt": 1788923098782,
+  "projectRoot": "D:\\6666\\qixing\\client\\mjclient_aiqiyi",
+  "summary": {
+    "copied": 2,
+    "skipped": 5,
+    "error": 0
+  },
+  "entries": [
+    {
+      "targetPath": "res/friendCards/main/btn_refresh.png",
+      "beforeExisted": true,
+      "store": "0.bin"
+    },
+    {
+      "targetPath": "res/friendCards/setSkin/zhuozi_0.png",
+      "beforeExisted": true,
+      "store": "1.bin"
+    }
+  ]
+}

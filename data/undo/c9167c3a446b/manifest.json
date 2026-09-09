@@ -1,0 +1,37 @@
+{
+  "batchId": "c9167c3a446b",
+  "createdAt": 1788921414802,
+  "projectRoot": "D:\\6666\\qixing\\client\\mjclient_aiqiyi",
+  "summary": {
+    "copied": 5,
+    "skipped": 0,
+    "error": 0
+  },
+  "entries": [
+    {
+      "targetPath": "res/friendCards/main/btn_ledou.png",
+      "beforeExisted": true,
+      "store": "0.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_memberlist_n.png",
+      "beforeExisted": true,
+      "store": "1.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_safebox.png",
+      "beforeExisted": true,
+      "store": "2.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/btn_zhanji.png",
+      "beforeExisted": true,
+      "store": "3.bin"
+    },
+    {
+      "targetPath": "res/friendCards/main/z_kuaishu.png",
+      "beforeExisted": true,
+      "store": "4.bin"
+    }
+  ]
+}

@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocos Studio JSON 转 CSD 工具</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=bc11c703122c">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=bc11c703122c">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=bc11c703122c">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=bc11c703122c">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --ink: #172033;
+            --muted: #6b7280;
+            --line: #d8dee9;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --success-soft: #dcfce7;
+            --warning: #f59e0b;
+            --warning-soft: #fff7ed;
+            --danger: #dc2626;
+            --danger-soft: #fef2f2;
+            --code-bg: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 32px;
+            color: var(--ink);
+            background:
+                linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(22, 163, 74, 0.08)),
+                var(--bg);
+            font-family: "IBM Plex Sans", "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .app-shell {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .eyebrow {
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin-top: 6px;
+            color: var(--ink);
+            font-size: clamp(28px, 4vw, 42px);
+            line-height: 1.12;
+            letter-spacing: 0;
+        }
+
+        .topbar p {
+            max-width: 660px;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .help-btn {
+            flex: 0 0 auto;
+            min-width: 44px;
+            height: 44px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--primary);
+            background: var(--panel);
+            cursor: pointer;
+            font-weight: 800;
+            transition: 180ms ease;
+        }
+
+        .help-btn:hover,
+        .help-btn:focus-visible {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+            outline: none;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .side-panel,
+        .main-panel {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .side-panel {
+            position: sticky;
+            top: 24px;
+            padding: 18px;
+        }
+
+        .step-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .step-item {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: #f8fafc;
+            color: var(--muted);
+        }
+
+        .step-item.active {
+            border-color: rgba(37, 99, 235, 0.35);
+            background: #eff6ff;
+            color: var(--ink);
+        }
+
+        .step-item.done {
+            border-color: rgba(22, 163, 74, 0.30);
+            background: var(--success-soft);
+            color: #166534;
+        }
+
+        .step-number {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            border-radius: 8px;
+            color: #ffffff;
+            background: #94a3b8;
+            font-family: Consolas, "JetBrains Mono", monospace;
+            font-weight: 700;
+        }
+
+        .step-item.active .step-number {
+            background: var(--primary);
+        }
+
+        .step-item.done .step-number {
+            background: var(--success);
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-desc {
+            margin-top: 2px;
+            font-size: 12px;
+        }
+
+        .main-panel {
+            overflow: hidden;
+        }
+
+        .section {
+            padding: 22px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .section:last-child {
+            border-bottom: 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .section-subtitle {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .upload-area {
+            min-height: 160px;
+            display: grid;
+            place-items: center;
+            padding: 28px;
+            border: 2px dashed #aeb9ca;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: 180ms ease;
+            background: #f8fafc;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover,
+        .upload-area:focus-visible {
+            border-color: var(--primary);
+            background: #eff6ff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+            outline: none;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .upload-text {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .file-info {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e3a8a;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .file-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--ink);
+            font-size: 14px;
+        }
+
+        .file-item strong {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-item span {
+            flex: 0 0 auto;
+            color: var(--muted);
+            font-family: Consolas, "JetBrains Mono", monospace;
+            font-size: 12px;
+        }
+
+        .project-box {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .project-status {
+            display: grid;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .status-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .status-badge.success {
+            background: var(--success-soft);
+            color: #166534;
+        }
+
+        .status-badge.warning {
+            background: var(--warning-soft);
+            color: #9a3412;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-height: 80px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .option label {
+            display: block;
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .option span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: #ffffff;
+            background: var(--primary);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 800;
+            transition: 180ms ease;
+        }
+
+        .btn:hover,
+        .btn:focus-visible {
+            background: var(--primary-dark);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+            outline: none;
+        }
+
+        .btn:disabled {
+            color: #64748b;
+            background: #e2e8f0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn.secondary {
+            color: var(--ink);
+            border-color: var(--line);
+            background: #ffffff;
+        }
+
+        .btn.secondary:hover,
+        .btn.secondary:focus-visible {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .btn.success {
+            background: var(--success);
+        }
+
+        .btn.success:hover,
+        .btn.success:focus-visible {
+            background: #15803d;
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.16);
+        }
+
+        .btn.warning {
+            background: var(--warning);
+        }
+
+        .btn.warning:hover,
+        .btn.warning:focus-visible {
+            background: #d97706;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+        }
+
+        .btn.danger {
+            background: var(--danger);
+        }
+
+        .btn.danger:hover,
+        .btn.danger:focus-visible {
+            background: #b91c1c;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.16);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .metric {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .metric-value {
+            margin-top: 4px;
+            font-family: Consolas, "JetBrains Mono", monospace;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .result {
+            min-height: 72px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #f8fafc;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .result.success {
+            border-color: #86efac;
+            background: var(--success-soft);
+            color: #166534;
+        }
+
+        .result.error {
+            border-color: #fecaca;
+            background: var(--danger-soft);
+            color: #991b1b;
+        }
+
+        .result.warning {
+            border-color: #fed7aa;
+            background: var(--warning-soft);
+            color: #9a3412;
+        }
+
+        .confirm-panel {
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            background: #eff6ff;
+        }
+
+        .confirm-panel.warning {
+            border-color: #fed7aa;
+            background: var(--warning-soft);
+        }
+
+        .confirm-panel.danger {
+            border-color: #fecaca;
+            background: var(--danger-soft);
+        }
+
+        .confirm-title {
+            font-weight: 900;
+        }
+
+        .confirm-text {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .danger-text {
+            color: var(--danger);
+            font-weight: 900;
+        }
+
+        .log {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 14px;
+            border-radius: 8px;
+            background: var(--code-bg);
+            color: #d1d5db;
+            font-family: Consolas, "JetBrains Mono", monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 5px 5px 10px;
+            border-left: 3px solid #60a5fa;
+        }
+
+        .log-entry.error {
+            border-left-color: #f87171;
+            color: #fecaca;
+        }
+
+        .log-entry.success {
+            border-left-color: #4ade80;
+            color: #bbf7d0;
+        }
+
+        .log-entry.warning {
+            border-left-color: #fbbf24;
+            color: #fde68a;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.58);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-card {
+            width: min(520px, 100%);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 20px 20px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .modal-mark {
+            flex: 0 0 auto;
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border-radius: 8px;
+            color: #ffffff;
+            background: var(--primary);
+            font-weight: 900;
+        }
+
+        .modal-card.error .modal-mark {
+            background: var(--danger);
+        }
+
+        .modal-card.warning .modal-mark {
+            background: var(--warning);
+        }
+
+        .modal-card.success .modal-mark {
+            background: var(--success);
+        }
+
+        .modal-title {
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .modal-body {
+            padding: 18px 20px;
+            color: var(--muted);
+            font-size: 15px;
+            white-space: pre-line;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px 20px 20px;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .modal-backdrop {
+                animation: modalFadeIn 160ms ease-out;
+            }
+
+            .modal-card {
+                animation: modalRiseIn 180ms ease-out;
+            }
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalRiseIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 860px) {
+            body {
+                padding: 18px;
+            }
+
+            .topbar,
+            .layout,
+            .options,
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .layout {
+                display: block;
+            }
+
+            .side-panel {
+                position: static;
+                margin-bottom: 16px;
+            }
+
+            .topbar {
+                display: grid;
+            }
+
+            .help-btn {
+                justify-self: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app-shell">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">Cocos Studio 工具</div>
+                <h1>JSON 转 CSD 流程工具</h1>
+                <p>先生成 CSD，再按步骤确认写入。所有会改文件的动作都会停下来等你确认，避免误覆盖和 UI 编辑器占用。</p>
+            </div>
+            <button class="help-btn" id="helpBtn" type="button" aria-label="查看帮助">?</button>
+        </header>
+
+        <div class="layout">
+            <aside class="side-panel">
+                <div class="step-list">
+                    <div class="step-item active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div>
+                            <div class="step-title">上传 JSON</div>
+                            <div class="step-desc">读取 Cocos Studio 导出文件</div>
+                        </div>
+                    </div>
+                    <div class="step-item" data-step="2">
+                        <div class="step-number">2</div>
+                        <div>
+                            <div class="step-title">生成 CSD</div>
+                            <div class="step-desc">反编译，不写入文件</div>
+                        </div>
+                    </div>
+                    <div class="step-item" data-step="3">
+                        <div class="step-number">3</div>
+                        <div>
+                            <div class="step-title">确认写入</div>
+                            <div class="step-desc">检查文件是否存在</div>
+                        </div>
+                    </div>
+                    <div class="step-item" data-step="4">
+                        <div class="step-number">4</div>
+                        <div>
+                            <div class="step-title">更新 CCS</div>
+                            <div class="step-desc">关闭 UI 编辑器后执行</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="main-panel">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">1. 上传 JSON 文件</div>
+                            <div class="section-subtitle">支持单个/批量选择，或从目录导入最多 5 个 JSON。</div>
+                        </div>
+                    </div>
+                    <div class="upload-area" id="uploadArea" tabindex="0" role="button" aria-label="选择 JSON 文件">
+                        <div>
+                            <div class="upload-title">选择或拖入 JSON 文件</div>
+                            <div class="upload-text">最多 5 个，例如 ui/res/Home_3.0.json</div>
+                        </div>
+                        <input type="file" id="fileInput" accept=".json" multiple style="display: none;">
+                    </div>
+                    <div class="action-row" style="margin-top: 12px;">
+                        <button class="btn secondary" id="importJsonDirBtn" type="button">导入 JSON 目录</button>
+                    </div>
+                    <div class="file-info hidden" id="fileInfo"></div>
+                    <div class="file-list hidden" id="fileList"></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">2. 选择后续动作</div>
+                            <div class="section-subtitle">建议先选择工程根目录，工具会自动识别 ui/cocosstudio 和 ui/mjclient.ccs。</div>
+                        </div>
+                    </div>
+                    <div class="project-box">
+                        <div class="action-row">
+                            <button class="btn secondary" id="selectProjectBtn" type="button">选择工程根目录</button>
+                            <button class="btn secondary hidden" id="clearProjectBtn" type="button">清除工程目录</button>
+                        </div>
+                        <div class="project-status" id="projectStatus">
+                            <div class="status-line">
+                                <span class="status-badge warning">未选择</span>
+                                <span>未绑定工程根目录，后续会降级为手动选择目录/文件。</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option">
+                            <input type="checkbox" id="writeCsd" checked>
+                            <div>
+                                <label for="writeCsd">写入 ui/cocosstudio</label>
+                                <span>选择工程根目录后会自动定位，否则生成后手动选择目录。</span>
+                            </div>
+                        </div>
+                        <div class="option">
+                            <input type="checkbox" id="modifyCcs" checked>
+                            <div>
+                                <label for="modifyCcs">更新 mjclient.ccs</label>
+                                <span>选择工程根目录后会自动定位，执行前仍会提示关闭 UI 编辑器。</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-row" style="margin-top: 14px;">
+                        <button class="btn" id="convertBtn" disabled type="button">批量生成 CSD</button>
+                        <button class="btn secondary" id="resetBtn" type="button">重新开始</button>
+                    </div>
+                    <div class="status-grid hidden" id="summaryGrid">
+                        <div class="metric">
+                            <div class="metric-label">输出数量</div>
+                            <div class="metric-value" id="summaryFile">-</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">总大小</div>
+                            <div class="metric-value" id="summarySize">-</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">ActionTag</div>
+                            <div class="metric-value" id="summaryActionTags">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section hidden" id="writeCsdSection">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">3. 确认写入 CSD</div>
+                            <div class="section-subtitle">工具会优先使用工程根目录下的 ui/cocosstudio，并检查同名文件。</div>
+                        </div>
+                    </div>
+                    <div class="confirm-panel" id="writeCsdPanel">
+                        <div class="confirm-title" id="writeCsdTitle">等待选择目录</div>
+                        <div class="confirm-text" id="writeCsdText">点击检查目录后，再决定是否写入。</div>
+                    </div>
+                    <div class="action-row" style="margin-top: 14px;">
+                        <button class="btn" id="checkCsdBtn" type="button">检查 CSD 写入位置</button>
+                        <button class="btn success hidden" id="executeCsdBtn" type="button">确认写入 CSD</button>
+                        <button class="btn secondary hidden" id="skipCsdBtn" type="button">跳过写入</button>
+                    </div>
+                </div>
+
+                <div class="section hidden" id="modifyCcsSection">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">4. 确认更新 mjclient.ccs</div>
+                            <div class="section-subtitle danger-text">写入前请先关闭 Cocos Studio / UI 编辑器，避免文件被占用或覆盖。</div>
+                        </div>
+                    </div>
+                    <div class="confirm-panel danger">
+                        <div class="confirm-title">需要你确认后才会写入</div>
+                        <div class="confirm-text">
+                            工具会读取 mjclient.ccs，检查是否已有当前批次 CSD 的 Project 引用；
+                            不存在时只插入一行引用。
+                        </div>
+                    </div>
+                    <div class="action-row" style="margin-top: 14px;">
+                        <button class="btn danger" id="executeCcsBtn" type="button">我已关闭 UI 编辑器，写入 CCS</button>
+                        <button class="btn secondary" id="skipCcsBtn" type="button">跳过 CCS 更新</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">转换结果</div>
+                    <div class="result" id="result">等待上传 JSON 文件。</div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">日志</div>
+                    <div class="log" id="log"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="modal-backdrop hidden" id="noticeModal" role="dialog" aria-modal="true" aria-labelledby="noticeTitle">
+        <div class="modal-card" id="noticeCard">
+            <div class="modal-header">
+                <div class="modal-mark" id="noticeMark">!</div>
+                <div>
+                    <div class="modal-title" id="noticeTitle">提示</div>
+                </div>
+            </div>
+            <div class="modal-body" id="noticeBody"></div>
+            <div class="modal-actions" id="noticeActions"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let uploadedFile = null;
+        let uploadedJson = null;
+        let generatedCsdContent = '';
+        let generatedCsdFileName = '';
+        let batchItems = [];
+        let currentStep = 1;
+        let projectRootHandle = null;
+        let projectUiHandle = null;
+        let csdDirectoryHandle = null;
+        let ccsFileHandle = null;
+        let csdFileExists = false;
+
+        // DOM 元素
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileList = document.getElementById('fileList');
+        const importJsonDirBtn = document.getElementById('importJsonDirBtn');
+        const convertBtn = document.getElementById('convertBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const result = document.getElementById('result');
+        const log = document.getElementById('log');
+        const selectProjectBtn = document.getElementById('selectProjectBtn');
+        const clearProjectBtn = document.getElementById('clearProjectBtn');
+        const projectStatus = document.getElementById('projectStatus');
+        const writeCsdCheckbox = document.getElementById('writeCsd');
+        const modifyCcsCheckbox = document.getElementById('modifyCcs');
+        const summaryGrid = document.getElementById('summaryGrid');
+        const summaryFile = document.getElementById('summaryFile');
+        const summarySize = document.getElementById('summarySize');
+        const summaryActionTags = document.getElementById('summaryActionTags');
+        const writeCsdSection = document.getElementById('writeCsdSection');
+        const writeCsdPanel = document.getElementById('writeCsdPanel');
+        const writeCsdTitle = document.getElementById('writeCsdTitle');
+        const writeCsdText = document.getElementById('writeCsdText');
+        const checkCsdBtn = document.getElementById('checkCsdBtn');
+        const executeCsdBtn = document.getElementById('executeCsdBtn');
+        const skipCsdBtn = document.getElementById('skipCsdBtn');
+        const modifyCcsSection = document.getElementById('modifyCcsSection');
+        const executeCcsBtn = document.getElementById('executeCcsBtn');
+        const skipCcsBtn = document.getElementById('skipCcsBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        const noticeModal = document.getElementById('noticeModal');
+        const noticeCard = document.getElementById('noticeCard');
+        const noticeMark = document.getElementById('noticeMark');
+        const noticeTitle = document.getElementById('noticeTitle');
+        const noticeBody = document.getElementById('noticeBody');
+        const noticeActions = document.getElementById('noticeActions');
+        let lastFocusedElement = null;
+
+        // 日志函数
+        function logMessage(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // 清空日志
+        function clearLog() {
+            log.innerHTML = '';
+        }
+
+        // 显示结果
+        function showResult(message, type = 'info') {
+            result.className = `result ${type}`;
+            result.textContent = message;
+        }
+
+        function createModalButton(label, className, onClick) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = className;
+            button.textContent = label;
+            button.addEventListener('click', onClick);
+            return button;
+        }
+
+        function closeNotice() {
+            noticeModal.classList.add('hidden');
+            noticeActions.innerHTML = '';
+            if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+                lastFocusedElement.focus();
+            }
+        }
+
+        noticeModal.addEventListener('click', (event) => {
+            if (event.target === noticeModal) {
+                closeNotice();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !noticeModal.classList.contains('hidden')) {
+                closeNotice();
+            }
+        });
+
+        function showNotice(title, message, type = 'info', options = {}) {
+            lastFocusedElement = document.activeElement;
+            noticeCard.className = `modal-card ${type}`;
+            noticeMark.textContent = type === 'success' ? '✓' : (type === 'warning' ? '!' : (type === 'error' ? '×' : 'i'));
+            noticeTitle.textContent = title;
+            noticeBody.textContent = message;
+            noticeActions.innerHTML = '';
+
+            const okText = options.okText || '我知道了';
+            const okClass = type === 'error' ? 'btn danger' : (type === 'warning' ? 'btn warning' : 'btn');
+            noticeActions.appendChild(createModalButton(okText, okClass, () => {
+                closeNotice();
+                if (typeof options.onClose === 'function') {
+                    options.onClose();
+                }
+            }));
+
+            noticeModal.classList.remove('hidden');
+            const firstButton = noticeActions.querySelector('button');
+            if (firstButton) {
+                firstButton.focus();
+            }
+        }
+
+        function showErrorNotice(message) {
+            showNotice('操作失败', message, 'error');
+        }
+
+        function showWarningNotice(message) {
+            showNotice('需要注意', message, 'warning');
+        }
+
+        function showSuccessNotice(message) {
+            showNotice('操作完成', message, 'success');
+        }
+
+        function setStep(step) {
+            currentStep = step;
+            document.querySelectorAll('.step-item').forEach(item => {
+                const itemStep = Number(item.dataset.step);
+                item.classList.toggle('active', itemStep === step);
+                item.classList.toggle('done', itemStep < step);
+            });
+        }
+
+        function countMatches(text, pattern) {
+            return (text.match(new RegExp(pattern, 'g')) || []).length;
+        }
+
+        function getReadyItems() {
+            return batchItems.filter(item => item.jsonData && !item.error);
+        }
+
+        function getGeneratedItems() {
+            return batchItems.filter(item => item.csdContent && item.csdFileName);
+        }
+
+        function renderFileList() {
+            if (batchItems.length === 0) {
+                fileInfo.classList.add('hidden');
+                fileList.classList.add('hidden');
+                return;
+            }
+
+            const readyCount = getReadyItems().length;
+            fileInfo.textContent = `已载入 ${batchItems.length} 个 JSON，解析成功 ${readyCount} 个，最多支持 5 个。`;
+            fileInfo.classList.remove('hidden');
+            fileList.innerHTML = batchItems.map(item => {
+                const status = item.error ? `解析失败：${escapeXml(item.error)}` : (item.csdFileName ? item.csdFileName : '待转换');
+                return `<div class="file-item"><strong>${escapeXml(item.fileName)}</strong><span>${status}</span></div>`;
+            }).join('');
+            fileList.classList.remove('hidden');
+        }
+
+        function syncLegacySingleState() {
+            const firstReady = getReadyItems()[0] || null;
+            uploadedFile = firstReady ? firstReady.file : null;
+            uploadedJson = firstReady ? firstReady.jsonData : null;
+            generatedCsdContent = firstReady ? (firstReady.csdContent || '') : '';
+            generatedCsdFileName = firstReady ? (firstReady.csdFileName || '') : '';
+        }
+
+        function resetGeneratedBatch() {
+            batchItems.forEach(item => {
+                item.csdContent = '';
+                item.csdFileName = '';
+                item.actionTagCount = 0;
+                item.csdSize = 0;
+                item.exists = false;
+            });
+            syncLegacySingleState();
+        }
+
+        function updateProjectStatus(message, type = 'warning') {
+            const badgeText = type === 'success' ? '已识别' : (type === 'error' ? '未识别' : '未选择');
+            projectStatus.innerHTML = `
+                <div class="status-line">
+                    <span class="status-badge ${type === 'success' ? 'success' : 'warning'}">${badgeText}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+        }
+
+        function clearProjectHandles() {
+            projectRootHandle = null;
+            projectUiHandle = null;
+            csdDirectoryHandle = null;
+            ccsFileHandle = null;
+            clearProjectBtn.classList.add('hidden');
+            updateProjectStatus('未绑定工程根目录，后续会降级为手动选择目录/文件。', 'warning');
+        }
+
+        async function getNestedDirectoryHandle(rootHandle, pathParts) {
+            let currentHandle = rootHandle;
+            for (const part of pathParts) {
+                currentHandle = await currentHandle.getDirectoryHandle(part, { create: false });
+            }
+            return currentHandle;
+        }
+
+        async function selectProjectRootDirectory() {
+            if (!checkFileSystemAccessSupport()) {
+                throw new Error('浏览器不支持目录访问，请使用 Chrome 或 Edge 86+');
+            }
+
+            const rootHandle = await window.showDirectoryPicker({
+                mode: 'readwrite',
+                startIn: 'desktop'
+            });
+
+            const uiHandle = await rootHandle.getDirectoryHandle('ui', { create: false });
+            const cocosstudioHandle = await getNestedDirectoryHandle(rootHandle, ['ui', 'cocosstudio']);
+            const mjclientHandle = await uiHandle.getFileHandle('mjclient.ccs', { create: false });
+
+            projectRootHandle = rootHandle;
+            projectUiHandle = uiHandle;
+            csdDirectoryHandle = cocosstudioHandle;
+            ccsFileHandle = mjclientHandle;
+
+            clearProjectBtn.classList.remove('hidden');
+            updateProjectStatus(`工程目录：${rootHandle.name}；已识别 ui/cocosstudio 和 ui/mjclient.ccs。`, 'success');
+            logMessage(`已识别工程目录: ${rootHandle.name}`, 'success');
+        }
+
+        function showNextWorkflowStep() {
+            if (writeCsdCheckbox.checked) {
+                writeCsdSection.classList.remove('hidden');
+                setStep(3);
+                writeCsdSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            if (modifyCcsCheckbox.checked) {
+                modifyCcsSection.classList.remove('hidden');
+                setStep(4);
+                modifyCcsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            showResult('转换完成。未勾选写入操作，已自动下载 CSD 文件。', 'success');
+            setStep(4);
+        }
+
+        function goToCcsStep() {
+            writeCsdSection.classList.add('hidden');
+            if (modifyCcsCheckbox.checked) {
+                modifyCcsSection.classList.remove('hidden');
+                setStep(4);
+                modifyCcsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                showResult('流程完成。CSD 已处理，未勾选更新 mjclient.ccs。', 'success');
+                setStep(4);
+            }
+        }
+
+        function resetWorkflow(keepFile = false) {
+            generatedCsdContent = '';
+            generatedCsdFileName = '';
+            csdFileExists = false;
+            if (keepFile) {
+                resetGeneratedBatch();
+                renderFileList();
+            }
+            summaryGrid.classList.add('hidden');
+            writeCsdSection.classList.add('hidden');
+            modifyCcsSection.classList.add('hidden');
+            checkCsdBtn.disabled = false;
+            executeCsdBtn.disabled = false;
+            executeCcsBtn.disabled = false;
+            executeCsdBtn.classList.add('hidden');
+            skipCsdBtn.classList.add('hidden');
+            writeCsdPanel.className = 'confirm-panel';
+            writeCsdTitle.textContent = '等待选择目录';
+            writeCsdText.textContent = '点击检查目录后，再决定是否写入。';
+            setStep(getReadyItems().length > 0 ? 2 : 1);
+
+            if (!keepFile) {
+                uploadedFile = null;
+                uploadedJson = null;
+                batchItems = [];
+                fileInput.value = '';
+                fileInfo.classList.add('hidden');
+                fileList.classList.add('hidden');
+                convertBtn.disabled = true;
+                showResult('等待上传 JSON 文件。', 'info');
+                clearLog();
+                setStep(1);
+            }
+        }
+
+        // 文件上传处理
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        uploadArea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFiles(Array.from(files));
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFiles(Array.from(e.target.files));
+            }
+        });
+
+        async function loadJsonFile(file) {
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                throw new Error('不是 JSON 文件');
+            }
+            const text = await file.text();
+            return JSON.parse(text);
+        }
+
+        async function handleFiles(files) {
+            const jsonFiles = files.filter(file => file.name.toLowerCase().endsWith('.json'));
+            if (jsonFiles.length === 0) {
+                showResult('请选择 JSON 文件', 'error');
+                logMessage('文件格式错误：不是 JSON 文件', 'error');
+                showErrorNotice('请选择 .json 格式的 Cocos Studio 导出文件。');
+                return;
+            }
+
+            const selectedFiles = jsonFiles.slice(0, MAX_BATCH_COUNT);
+            if (jsonFiles.length > MAX_BATCH_COUNT) {
+                showWarningNotice(`一次最多支持 ${MAX_BATCH_COUNT} 个 JSON。\n\n本次已自动取前 ${MAX_BATCH_COUNT} 个文件。`);
+            }
+
+            clearLog();
+            batchItems = [];
+
+            for (const file of selectedFiles) {
+                const item = {
+                    file,
+                    fileName: file.name,
+                    jsonData: null,
+                    csdFileName: '',
+                    csdContent: '',
+                    actionTagCount: 0,
+                    csdSize: 0,
+                    exists: false,
+                    error: ''
+                };
+                try {
+                    item.jsonData = await loadJsonFile(file);
+                    logMessage(`成功解析 JSON 文件: ${file.name}`, 'success');
+                } catch (error) {
+                    item.error = error.message;
+                    logMessage(`JSON 解析错误: ${error.message}`, 'error');
+                }
+                batchItems.push(item);
+            }
+
+            syncLegacySingleState();
+            resetWorkflow(true);
+            renderFileList();
+            const readyCount = getReadyItems().length;
+            convertBtn.disabled = readyCount === 0;
+            if (readyCount === 0) {
+                showResult('JSON 文件解析失败', 'error');
+                showErrorNotice('选中的 JSON 都解析失败，请检查文件格式。');
+                return;
+            }
+
+            showResult(`JSON 解析完成：${readyCount} 个可转换。`, 'success');
+            setStep(2);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // 版本信息
+        const MAX_BATCH_COUNT = 5;
+        const COCOS_STUDIO_VERSION = '3.10.0.0';
+        const PROJECT_NAME = 'mjclient';
+
+        // 生成 UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        const XML_INDENT = '  ';
+        const COCOS_OBJECT_CTYPE_MAP = {
+            LayerObjectData: 'GameLayerObjectData'
+        };
+        const PROPERTY_GROUP_TYPE_MAP = {
+            LayerObjectData: 'Layer',
+            GameLayerObjectData: 'Layer',
+            SceneObjectData: 'Scene',
+            NodeObjectData: 'Node'
+        };
+        const FRAME_CTYPE_MAP = {
+            PointFrameData: 'PointFrame',
+            ScaleFrameData: 'ScaleFrame',
+            RotationSkewFrameData: 'RotationSkewFrame',
+            ColorFrameData: 'ColorFrame',
+            AlphaFrameData: 'AlphaFrame',
+            TextureFrameData: 'TextureFrame',
+            VisibleFrameData: 'VisibleFrame',
+            EventFrameData: 'EventFrame',
+            InnerActionFrameData: 'InnerActionFrame',
+            AnchorPointFrameData: 'AnchorPointFrame',
+            SizeFrameData: 'SizeFrame'
+        };
+        const ATTRIBUTE_ORDER = [
+            'Name', 'CanEdit', 'ActionTag', 'VisibleForFrame', 'Tag', 'IconVisible',
+            'PositionPercentXEnabled', 'PositionPercentYEnabled',
+            'PercentWidthEnable', 'PercentHeightEnable',
+            'PercentWidthEnabled', 'PercentHeightEnabled',
+            'LeftMargin', 'RightMargin', 'TopMargin', 'BottomMargin',
+            'TouchEnable', 'ClipAble', 'BackColorAlpha', 'ComboBoxIndex', 'ColorAngle',
+            'FontSize', 'LabelText', 'ButtonText',
+            'HorizontalAlignmentType', 'VerticalAlignmentType', 'OutlineSize',
+            'Scale9Enable', 'LeftEage', 'RightEage', 'TopEage', 'BottomEage',
+            'Scale9OriginX', 'Scale9OriginY', 'Scale9Width', 'Scale9Height',
+            'ScrollDirectionType', 'ShadowOffsetX', 'ShadowOffsetY', 'ctype'
+        ];
+        const NODE_CHILD_ORDER = [
+            'Size', 'Children', 'AnchorPoint', 'Position', 'Scale', 'RotationSkew',
+            'CColor', 'PrePosition', 'PreSize',
+            'TextColor', 'FontResource', 'FileData',
+            'NormalFileData', 'PressedFileData', 'DisabledFileData',
+            'OutlineColor', 'ShadowColor',
+            'SingleColor', 'FirstColor', 'EndColor', 'ColorVector', 'InnerNodeSize'
+        ];
+        const CHILD_ELEMENT_KEYS = new Set(NODE_CHILD_ORDER);
+        const INTEGER_ATTRIBUTE_KEYS = new Set([
+            'ActionTag', 'Tag', 'FontSize', 'BackColorAlpha', 'ComboBoxIndex',
+            'OutlineSize', 'Scale9OriginX', 'Scale9OriginY', 'Scale9Width',
+            'Scale9Height', 'ScrollDirectionType', 'LeftEage', 'RightEage',
+            'TopEage', 'BottomEage', 'Duration', 'FrameIndex', 'Type'
+        ]);
+
+        function repeatIndent(depth) {
+            return XML_INDENT.repeat(depth);
+        }
+
+        function escapeXml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function formatFloat(value) {
+            const numberValue = Number(value);
+            if (!Number.isFinite(numberValue)) {
+                return '0.0000';
+            }
+            return numberValue.toFixed(4);
+        }
+
+        function formatAttributeValue(key, value) {
+            if (typeof value === 'boolean') {
+                return value ? 'True' : 'False';
+            }
+            if (typeof value === 'number') {
+                if (INTEGER_ATTRIBUTE_KEYS.has(key) && Number.isInteger(value)) {
+                    return String(value);
+                }
+                return formatFloat(value);
+            }
+            return escapeXml(value);
+        }
+
+        function formatChildValue(key, value) {
+            if (typeof value === 'boolean') {
+                return value ? 'True' : 'False';
+            }
+            if (typeof value === 'number') {
+                if (['A', 'R', 'G', 'B', 'Width', 'Height', 'Type'].includes(key)) {
+                    return String(Math.round(value));
+                }
+                return formatFloat(value);
+            }
+            return escapeXml(value);
+        }
+
+        function createAttributeText(attributes) {
+            return attributes
+                .filter(attr => attr.value !== undefined && attr.value !== null)
+                .map(attr => `${attr.name}="${formatAttributeValue(attr.name, attr.value)}"`)
+                .join(' ');
+        }
+
+        function sortAttributes(attributeMap) {
+            const result = [];
+            const used = new Set();
+
+            ATTRIBUTE_ORDER.forEach(key => {
+                if (Object.prototype.hasOwnProperty.call(attributeMap, key)) {
+                    result.push({ name: key, value: attributeMap[key] });
+                    used.add(key);
+                }
+            });
+
+            Object.keys(attributeMap).forEach(key => {
+                if (!used.has(key)) {
+                    result.splice(Math.max(result.length - 1, 0), 0, { name: key, value: attributeMap[key] });
+                }
+            });
+
+            return result;
+        }
+
+        function getDefaultColor(elementName) {
+            const defaults = {
+                CColor: { A: 255, R: 255, G: 255, B: 255 },
+                TextColor: { A: 255, R: 65, G: 65, B: 70 },
+                OutlineColor: { A: 255, R: 255, G: 0, B: 0 },
+                ShadowColor: { A: 255, R: 110, G: 110, B: 110 },
+                SingleColor: { A: 255, R: 255, G: 150, B: 100 },
+                FirstColor: { A: 255, R: 255, G: 150, B: 100 },
+                EndColor: { A: 255, R: 250, G: 250, B: 255 }
+            };
+            return defaults[elementName] || {};
+        }
+
+        function getChildAttributes(elementName, value) {
+            if (!value || typeof value !== 'object') {
+                return [];
+            }
+
+            if (['CColor', 'TextColor', 'OutlineColor', 'ShadowColor', 'SingleColor', 'FirstColor', 'EndColor'].includes(elementName)) {
+                const color = Object.assign({}, getDefaultColor(elementName), value);
+                return ['A', 'R', 'G', 'B']
+                    .filter(key => color[key] !== undefined)
+                    .map(key => ({ name: key, value: color[key] }));
+            }
+
+            const orders = {
+                Size: ['X', 'Y'],
+                AnchorPoint: ['ScaleX', 'ScaleY'],
+                Position: ['X', 'Y'],
+                Scale: ['ScaleX', 'ScaleY'],
+                RotationSkew: ['X', 'Y'],
+                PrePosition: ['X', 'Y'],
+                PreSize: ['X', 'Y'],
+                ColorVector: ['ScaleX', 'ScaleY'],
+                InnerNodeSize: ['Width', 'Height'],
+                FileData: ['Type', 'Path', 'Plist'],
+                NormalFileData: ['Type', 'Path', 'Plist'],
+                PressedFileData: ['Type', 'Path', 'Plist'],
+                DisabledFileData: ['Type', 'Path', 'Plist'],
+                FontResource: ['Type', 'Path', 'Plist']
+            };
+            const order = orders[elementName] || Object.keys(value);
+            const used = new Set();
+            const attributes = [];
+
+            order.forEach(key => {
+                if (value[key] !== undefined && value[key] !== null) {
+                    attributes.push({ name: key, value: value[key] });
+                    used.add(key);
+                }
+            });
+            Object.keys(value).forEach(key => {
+                if (!used.has(key) && value[key] !== undefined && value[key] !== null) {
+                    attributes.push({ name: key, value: value[key] });
+                }
+            });
+
+            return attributes;
+        }
+
+        function createChildElement(elementName, value, depth) {
+            const attributes = getChildAttributes(elementName, value)
+                .map(attr => `${attr.name}="${formatChildValue(attr.name, attr.value)}"`)
+                .join(' ');
+            return `${repeatIndent(depth)}<${elementName}${attributes ? ' ' + attributes : ''} />`;
+        }
+
+        function getNodeCtype(node, isRoot) {
+            const ctype = node.ctype || (isRoot ? 'LayerObjectData' : 'NodeObjectData');
+            return isRoot ? (COCOS_OBJECT_CTYPE_MAP[ctype] || ctype) : ctype;
+        }
+
+        function createNodeAttributes(node, isRoot) {
+            const attributeMap = {};
+
+            Object.keys(node).forEach(key => {
+                const value = node[key];
+                if (key === 'Children' || key === 'Size' || CHILD_ELEMENT_KEYS.has(key)) {
+                    return;
+                }
+                if (key === 'ButtonText' && value === '') {
+                    return;
+                }
+                if (value !== null && typeof value !== 'object') {
+                    attributeMap[key] = key === 'ctype' ? getNodeCtype(node, isRoot) : value;
+                }
+            });
+
+            if (!attributeMap.Name && isRoot) {
+                attributeMap.Name = 'Layer';
+            }
+
+            if (node.Scale9OriginX !== undefined) {
+                const edge = Math.abs(Number(node.Scale9OriginX));
+                attributeMap.LeftEage = edge;
+                attributeMap.RightEage = edge;
+            }
+            if (node.Scale9OriginY !== undefined) {
+                const edge = Math.abs(Number(node.Scale9OriginY));
+                attributeMap.TopEage = edge;
+                attributeMap.BottomEage = edge;
+            }
+            if (node.ColorVector && attributeMap.ColorAngle === undefined) {
+                attributeMap.ColorAngle = 90;
+            }
+
+            attributeMap.ctype = getNodeCtype(node, isRoot);
+            return sortAttributes(attributeMap);
+        }
+
+        function convertChildren(children, depth) {
+            if (!Array.isArray(children) || children.length === 0) {
+                return [];
+            }
+
+            const lines = [`${repeatIndent(depth)}<Children>`];
+            children.forEach(child => {
+                lines.push(...convertNodeToXml(child, depth + 1, false));
+            });
+            lines.push(`${repeatIndent(depth)}</Children>`);
+            return lines;
+        }
+
+        function convertNodeToXml(node, depth, isRoot) {
+            const tagName = isRoot ? 'ObjectData' : 'AbstractNodeData';
+            const attributes = createAttributeText(createNodeAttributes(node, isRoot));
+            const lines = [`${repeatIndent(depth)}<${tagName}${attributes ? ' ' + attributes : ''}>`];
+
+            NODE_CHILD_ORDER.forEach(key => {
+                if (key === 'Children') {
+                    lines.push(...convertChildren(node.Children, depth + 1));
+                    return;
+                }
+                if (node[key] !== undefined && node[key] !== null) {
+                    lines.push(createChildElement(key, node[key], depth + 1));
+                }
+            });
+
+            lines.push(`${repeatIndent(depth)}</${tagName}>`);
+            return lines;
+        }
+
+        function getCocosContent(jsonData) {
+            return (jsonData && jsonData.Content && jsonData.Content.Content)
+                ? jsonData.Content.Content
+                : (jsonData.Content || jsonData);
+        }
+
+        function convertAnimation(animation, depth) {
+            const duration = animation && animation.Duration !== undefined ? animation.Duration : 0;
+            const speed = animation && animation.Speed !== undefined ? animation.Speed : 1;
+            const timelines = animation && Array.isArray(animation.Timelines) ? animation.Timelines : [];
+            const attr = `Duration="${formatAttributeValue('Duration', duration)}" Speed="${formatFloat(speed)}"`;
+
+            if (timelines.length === 0) {
+                return [`${repeatIndent(depth)}<Animation ${attr} />`];
+            }
+
+            const lines = [`${repeatIndent(depth)}<Animation ${attr}>`];
+            timelines.forEach(timeline => {
+                lines.push(`${repeatIndent(depth + 1)}<Timeline ActionTag="${formatAttributeValue('ActionTag', timeline.ActionTag)}" Property="${escapeXml(timeline.Property || '')}">`);
+                (timeline.Frames || []).forEach(frame => {
+                    const frameTag = FRAME_CTYPE_MAP[frame.ctype] || frame.ctype || 'Frame';
+                    const frameAttributes = Object.keys(frame)
+                        .filter(key => key !== 'ctype' && key !== 'EasingData' && frame[key] !== null && typeof frame[key] !== 'object')
+                        .map(key => `${key}="${formatAttributeValue(key, frame[key])}"`)
+                        .join(' ');
+
+                    if (frame.EasingData) {
+                        lines.push(`${repeatIndent(depth + 2)}<${frameTag}${frameAttributes ? ' ' + frameAttributes : ''}>`);
+                        const easingAttrs = getChildAttributes('EasingData', frame.EasingData)
+                            .map(attr => `${attr.name}="${formatChildValue(attr.name, attr.value)}"`)
+                            .join(' ');
+                        lines.push(`${repeatIndent(depth + 3)}<EasingData${easingAttrs ? ' ' + easingAttrs : ''} />`);
+                        lines.push(`${repeatIndent(depth + 2)}</${frameTag}>`);
+                    } else {
+                        lines.push(`${repeatIndent(depth + 2)}<${frameTag}${frameAttributes ? ' ' + frameAttributes : ''} />`);
+                    }
+                });
+                lines.push(`${repeatIndent(depth + 1)}</Timeline>`);
+            });
+            lines.push(`${repeatIndent(depth)}</Animation>`);
+            return lines;
+        }
+
+        // JSON 到 CSD 转换
+        function convertJsonToCsdXml(jsonData, fileName) {
+            if (!jsonData || typeof jsonData !== 'object') {
+                throw new Error('JSON 数据为空或格式不正确');
+            }
+
+            const cocosContent = getCocosContent(jsonData);
+            const objectData = cocosContent.ObjectData || jsonData.ObjectData;
+            if (!objectData) {
+                throw new Error('找不到 Content.Content.ObjectData，无法转换为 CSD');
+            }
+
+            const baseName = jsonData.Name || fileName.replace(/\.json$/i, '').replace(/\.csd$/i, '');
+            const groupType = PROPERTY_GROUP_TYPE_MAP[objectData.ctype] || 'Layer';
+            const projectId = jsonData.ID || objectData.ID || generateUUID();
+            const lines = [
+                '<GameFile>',
+                `${repeatIndent(1)}<PropertyGroup Name="${escapeXml(baseName)}" Type="${groupType}" ID="${escapeXml(projectId)}" Version="${COCOS_STUDIO_VERSION}" />`,
+                `${repeatIndent(1)}<Content ctype="GameProjectContent">`,
+                `${repeatIndent(2)}<Content>`
+            ];
+
+            lines.push(...convertAnimation(cocosContent.Animation, 3));
+            lines.push(...convertNodeToXml(objectData, 3, true));
+            lines.push(`${repeatIndent(2)}</Content>`);
+            lines.push(`${repeatIndent(1)}</Content>`);
+            lines.push('</GameFile>');
+
+            return lines.join('\n');
+        }
+
+        // 检查 File System Access API 支持
+        function checkFileSystemAccessSupport() {
+            return 'showDirectoryPicker' in window && 'showOpenFilePicker' in window;
+        }
+
+        // 写入 CSD 文件
+        async function selectCsdDirectory(csdFileName) {
+            if (!checkFileSystemAccessSupport()) {
+                throw new Error('浏览器不支持 File System Access API，请使用 Chrome 或 Edge 86+');
+            }
+
+            try {
+                const dirHandle = csdDirectoryHandle || await window.showDirectoryPicker({
+                    mode: 'readwrite',
+                    startIn: 'desktop'
+                });
+
+                let exists = false;
+                try {
+                    await dirHandle.getFileHandle(csdFileName, { create: false });
+                    exists = true;
+                } catch (error) {
+                    if (error.name !== 'NotFoundError') {
+                        throw error;
+                    }
+                }
+
+                csdDirectoryHandle = dirHandle;
+                csdFileExists = exists;
+                return { dirHandle, exists, autoDetected: Boolean(projectRootHandle) };
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('用户取消了目录选择');
+                }
+                throw new Error(`检查 CSD 目录失败: ${error.message}`);
+            }
+        }
+
+        async function writeCsdFileToSelectedDirectory(csdContent, csdFileName) {
+            if (!csdDirectoryHandle) {
+                throw new Error('请先检查 cocosstudio 目录');
+            }
+
+            try {
+                const fileHandle = await csdDirectoryHandle.getFileHandle(csdFileName, { create: true });
+
+                const writable = await fileHandle.createWritable();
+                await writable.write(csdContent);
+                await writable.close();
+
+                logMessage(`成功写入 CSD 文件: ${csdFileName}`, 'success');
+                return { success: true, path: `${csdDirectoryHandle.name}/${csdFileName}` };
+            } catch (error) {
+                throw new Error(`写入文件失败: ${error.message}`);
+            }
+        }
+
+        async function checkCsdDirectoryForGeneratedItems() {
+            const generatedItems = getGeneratedItems();
+            if (generatedItems.length === 0) {
+                throw new Error('请先生成 CSD 文件');
+            }
+
+            const firstCheck = await selectCsdDirectory(generatedItems[0].csdFileName);
+            generatedItems[0].exists = firstCheck.exists;
+
+            for (let i = 1; i < generatedItems.length; i++) {
+                const item = generatedItems[i];
+                try {
+                    await csdDirectoryHandle.getFileHandle(item.csdFileName, { create: false });
+                    item.exists = true;
+                } catch (error) {
+                    if (error.name === 'NotFoundError') {
+                        item.exists = false;
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+
+            csdFileExists = generatedItems.some(item => item.exists);
+            return {
+                dirHandle: firstCheck.dirHandle,
+                autoDetected: firstCheck.autoDetected,
+                existingItems: generatedItems.filter(item => item.exists),
+                generatedItems
+            };
+        }
+
+        async function writeGeneratedCsdFilesToSelectedDirectory() {
+            const generatedItems = getGeneratedItems();
+            if (!csdDirectoryHandle) {
+                throw new Error('请先检查 cocosstudio 目录');
+            }
+
+            for (const item of generatedItems) {
+                await writeCsdFileToSelectedDirectory(item.csdContent, item.csdFileName);
+            }
+        }
+
+        // 下载 CSD 文件（备用方案）
+        function downloadCsdFile(csdContent, fileName) {
+            const csdFileName = fileName.replace('.json', '.csd');
+            const blob = new Blob([csdContent], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = csdFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            logMessage(`已下载 CSD 文件: ${csdFileName}`, 'success');
+        }
+
+        // 读取 CCS 文件
+        async function readCcsFile() {
+            if (!checkFileSystemAccessSupport()) {
+                throw new Error('浏览器不支持 File System Access API');
+            }
+
+            try {
+                let fileHandle = ccsFileHandle;
+                if (!fileHandle) {
+                    [fileHandle] = await window.showOpenFilePicker({
+                        multiple: false,
+                        types: [{
+                            description: 'CCS Files',
+                            accept: { 'text/xml': ['.ccs'] }
+                        }]
+                    });
+                }
+
+                const file = await fileHandle.getFile();
+                const content = await file.text();
+
+                logMessage(`成功读取 CCS 文件: ${file.name}`, 'success');
+                return { content, handle: fileHandle, name: file.name };
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('用户取消了文件选择');
+                }
+                throw new Error(`读取 CCS 文件失败: ${error.message}`);
+            }
+        }
+
+        // 修改 CCS 文件
+        function modifyCcsContent(ccsContent, csdFileName, projectType = 'Layer') {
+            if (new RegExp(`<Project\\s+Name="${escapeRegExp(csdFileName)}"\\s+Type="[^"]+"\\s*/>`).test(ccsContent)) {
+                logMessage(`文件 ${csdFileName} 已存在于 CCS 文件中`, 'info');
+                return ccsContent;
+            }
+
+            const projects = Array.from(ccsContent.matchAll(/[ \t]*<Project\s+Name="[^"]+\.csd"\s+Type="[^"]+"\s*\/>/g));
+            if (projects.length === 0) {
+                throw new Error('CCS 文件中找不到 Project 列表，请手动添加项目引用');
+            }
+
+            const lineBreakMatch = ccsContent.match(/\r\n|\n|\r/);
+            const lineBreak = lineBreakMatch ? lineBreakMatch[0] : '\n';
+            const projectNames = projects.map(match => {
+                const nameMatch = match[0].match(/Name="([^"]+)"/);
+                return nameMatch ? nameMatch[1] : '';
+            });
+            let insertAfter = projects[projects.length - 1];
+            const lowerName = csdFileName.toLowerCase();
+
+            for (let i = 0; i < projectNames.length; i++) {
+                if (lowerName < projectNames[i].toLowerCase()) {
+                    insertAfter = i > 0 ? projects[i - 1] : null;
+                    break;
+                }
+            }
+
+            const referenceProject = insertAfter || projects[0];
+            const indentMatch = referenceProject[0].match(/^[ \t]*/);
+            const projectIndent = indentMatch ? indentMatch[0] : '        ';
+            const insertText = `${projectIndent}<Project Name="${csdFileName}" Type="${projectType}" />${lineBreak}`;
+            const insertIndex = insertAfter
+                ? insertAfter.index + insertAfter[0].length + lineBreak.length
+                : projects[0].index;
+
+            logMessage(`成功添加文件引用: ${csdFileName}`, 'success');
+            return ccsContent.slice(0, insertIndex) + insertText + ccsContent.slice(insertIndex);
+        }
+
+        function modifyCcsContentBatch(ccsContent, items, projectType = 'Layer') {
+            let content = ccsContent;
+            let addedCount = 0;
+            let existedCount = 0;
+
+            items.forEach(item => {
+                const before = content;
+                content = modifyCcsContent(content, item.csdFileName, projectType);
+                if (content === before) {
+                    existedCount++;
+                } else {
+                    addedCount++;
+                }
+            });
+
+            return { content, addedCount, existedCount };
+        }
+
+        function escapeRegExp(value) {
+            return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // 写入 CCS 文件
+        async function writeCcsFile(ccsContent, fileHandle) {
+            try {
+                const writable = await fileHandle.createWritable();
+                await writable.write(ccsContent);
+                await writable.close();
+
+                logMessage(`成功写入 CCS 文件`, 'success');
+                return { success: true };
+            } catch (error) {
+                throw new Error(`写入 CCS 文件失败: ${error.message}`);
+            }
+        }
+
+        // 只执行转换，不在这里写入任何项目文件
+        function generateCsdFromJson() {
+            try {
+                const readyItems = getReadyItems();
+                if (readyItems.length === 0) {
+                    throw new Error('没有可转换的 JSON 文件');
+                }
+
+                let totalSize = 0;
+                let totalActionTags = 0;
+                logMessage(`开始批量转换 ${readyItems.length} 个 JSON`, 'info');
+
+                readyItems.forEach(item => {
+                    const baseName = item.fileName.replace(/\.json$/i, '');
+                    item.csdFileName = baseName + '.csd';
+                    item.csdContent = convertJsonToCsdXml(item.jsonData, item.fileName);
+                    item.csdSize = new Blob([item.csdContent]).size;
+                    item.actionTagCount = countMatches(item.csdContent, 'ActionTag=');
+                    totalSize += item.csdSize;
+                    totalActionTags += item.actionTagCount;
+                    logMessage(`转换完成: ${item.fileName} -> ${item.csdFileName}`, 'success');
+                });
+
+                syncLegacySingleState();
+                renderFileList();
+
+                summaryFile.textContent = `${readyItems.length} 个`;
+                summarySize.textContent = formatFileSize(totalSize);
+                summaryActionTags.textContent = totalActionTags;
+                summaryGrid.classList.remove('hidden');
+                convertBtn.disabled = true;
+
+                showResult(`CSD 已生成：${readyItems.length} 个文件。请继续确认后续写入步骤。`, 'success');
+
+                if (!writeCsdCheckbox.checked) {
+                    readyItems.forEach(item => downloadCsdFile(item.csdContent, item.csdFileName));
+                }
+
+                showNextWorkflowStep();
+
+            } catch (error) {
+                showResult(`转换失败: ${error.message}`, 'error');
+                logMessage(`转换错误: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // 浏览器兼容性检查
+        function checkBrowserCompatibility() {
+            const isSupported = checkFileSystemAccessSupport();
+
+            if (!isSupported) {
+                showResult('当前浏览器不支持目录写入。仍可转换并下载 CSD，写入项目文件请使用 Chrome 或 Edge 86+。', 'warning');
+                logMessage('浏览器不支持 File System Access API，写入步骤将不可用', 'warning');
+                writeCsdCheckbox.checked = false;
+                modifyCcsCheckbox.checked = false;
+                showWarningNotice('当前浏览器不支持目录写入。\n\n你仍然可以转换并下载 CSD 文件；如果要自动写入工程目录，请使用 Chrome 或 Edge 86+ 打开此工具。');
+            }
+
+            return isSupported;
+        }
+
+        // 页面加载时检查兼容性
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!checkBrowserCompatibility()) {
+                writeCsdCheckbox.disabled = true;
+                modifyCcsCheckbox.disabled = true;
+            }
+        });
+
+        // 添加帮助信息
+        function showHelp() {
+            const helpText =
+`使用说明：
+1. 上传 Cocos Studio 导出的 JSON 文件，支持一次最多 5 个
+2. 建议点击"选择工程根目录"，选择 mjclient-XX 这类工程根目录
+3. 也可以点击"导入 JSON 目录"，自动读取目录第一层最多 5 个 JSON
+4. 点击"批量生成 CSD"，此时只转换，不写入项目文件
+5. 如勾选写入 CSD，会自动定位 ui/cocosstudio 并确认是否覆盖
+6. 如勾选更新 CCS，会自动读取 ui/mjclient.ccs；写入前请先关闭 Cocos Studio/UI 编辑器
+
+注意事项：
+- 需要使用 Chrome 或 Edge 86+ 浏览器
+- 建议在修改前备份 mjclient.ccs 文件
+- 生成的 CSD 文件版本为 3.10.0.0`;
+            showNotice('使用说明', helpText, 'info');
+        }
+
+        // 转换按钮点击事件
+        convertBtn.addEventListener('click', () => {
+            if (getReadyItems().length === 0) {
+                showResult('请先上传 JSON 文件', 'error');
+                showErrorNotice('请先上传 JSON 文件，再执行转换。');
+                return;
+            }
+
+            clearLog();
+            resetWorkflow(true);
+            logMessage('开始转换...', 'info');
+
+            try {
+                generateCsdFromJson();
+            } catch (error) {
+                showResult(`转换失败: ${error.message}`, 'error');
+                logMessage(`转换错误: ${error.message}`, 'error');
+                showErrorNotice(`转换失败：${error.message}`);
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            resetWorkflow(false);
+        });
+
+        selectProjectBtn.addEventListener('click', async () => {
+            try {
+                selectProjectBtn.disabled = true;
+                logMessage('正在识别工程根目录...', 'info');
+                await selectProjectRootDirectory();
+                showResult('工程目录识别成功，后续写入会自动定位相关文件。', 'success');
+                showSuccessNotice('工程目录识别成功。\n\n后续写入 CSD 会自动定位 ui/cocosstudio，更新 CCS 会自动读取 ui/mjclient.ccs。');
+            } catch (error) {
+                clearProjectHandles();
+                const message = error.name === 'AbortError'
+                    ? '用户取消了工程目录选择'
+                    : `工程目录识别失败：请确认选择的是包含 ui/cocosstudio 和 ui/mjclient.ccs 的工程根目录。${error.message}`;
+                showResult(message, 'error');
+                logMessage(message, 'error');
+                showErrorNotice(message);
+            } finally {
+                selectProjectBtn.disabled = false;
+            }
+        });
+
+        clearProjectBtn.addEventListener('click', () => {
+            clearProjectHandles();
+            logMessage('已清除工程目录绑定', 'warning');
+        });
+
+        importJsonDirBtn.addEventListener('click', async () => {
+            if (!checkFileSystemAccessSupport()) {
+                showWarningNotice('当前浏览器不支持目录导入，请使用 Chrome 或 Edge 86+。');
+                return;
+            }
+
+            try {
+                importJsonDirBtn.disabled = true;
+                const dirHandle = await window.showDirectoryPicker({
+                    mode: 'read',
+                    startIn: 'desktop'
+                });
+                const files = [];
+                for await (const entry of dirHandle.values()) {
+                    if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.json')) {
+                        files.push(await entry.getFile());
+                        if (files.length >= MAX_BATCH_COUNT) {
+                            break;
+                        }
+                    }
+                }
+
+                if (files.length === 0) {
+                    showErrorNotice('所选目录第一层没有找到 .json 文件。');
+                    return;
+                }
+
+                logMessage(`从目录 ${dirHandle.name} 导入 ${files.length} 个 JSON`, 'info');
+                await handleFiles(files);
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    showErrorNotice(`导入 JSON 目录失败：${error.message}`);
+                    logMessage(`导入 JSON 目录失败: ${error.message}`, 'error');
+                }
+            } finally {
+                importJsonDirBtn.disabled = false;
+            }
+        });
+
+        checkCsdBtn.addEventListener('click', async () => {
+            const generatedItems = getGeneratedItems();
+            if (generatedItems.length === 0) {
+                showResult('请先生成 CSD 文件', 'error');
+                showErrorNotice('请先生成 CSD 文件，再检查写入位置。');
+                return;
+            }
+
+            try {
+                checkCsdBtn.disabled = true;
+                logMessage('正在检查 cocosstudio 目录...', 'info');
+                const checkResult = await checkCsdDirectoryForGeneratedItems();
+
+                executeCsdBtn.classList.remove('hidden');
+                skipCsdBtn.classList.remove('hidden');
+                writeCsdPanel.className = checkResult.existingItems.length > 0 ? 'confirm-panel warning' : 'confirm-panel';
+                writeCsdTitle.textContent = checkResult.existingItems.length > 0
+                    ? '检测到同名 CSD 文件'
+                    : '未检测到同名文件';
+                const locationText = checkResult.autoDetected
+                    ? `自动识别目录 <strong>ui/cocosstudio</strong>`
+                    : `目录 <strong>${checkResult.dirHandle.name}</strong>`;
+                const namesText = checkResult.generatedItems.map(item => item.csdFileName).join('、');
+                const existingText = checkResult.existingItems.map(item => item.csdFileName).join('、');
+                writeCsdText.innerHTML = checkResult.existingItems.length > 0
+                    ? `${locationText} 中已有 <strong>${existingText}</strong>，确认后会替换这些文件；本次共写入 ${checkResult.generatedItems.length} 个 CSD。`
+                    : `${locationText} 可以写入 <strong>${namesText}</strong>，共 ${checkResult.generatedItems.length} 个 CSD。`;
+                executeCsdBtn.textContent = checkResult.existingItems.length > 0 ? '确认批量替换 CSD' : '确认批量写入 CSD';
+                logMessage(checkResult.existingItems.length > 0 ? '检测到同名 CSD 文件，等待用户确认替换' : 'CSD 文件不存在，等待用户确认写入', checkResult.existingItems.length > 0 ? 'warning' : 'success');
+                if (checkResult.existingItems.length > 0) {
+                    showWarningNotice(`以下 CSD 已存在：\n${existingText}\n\n如果继续执行，会替换这些文件。请确认它们不是 UI 编辑器里正在编辑的版本。`);
+                }
+            } catch (error) {
+                showResult(error.message, 'error');
+                logMessage(error.message, 'error');
+                showErrorNotice(error.message);
+            } finally {
+                checkCsdBtn.disabled = false;
+            }
+        });
+
+        executeCsdBtn.addEventListener('click', async () => {
+            try {
+                executeCsdBtn.disabled = true;
+                const actionText = csdFileExists ? '替换' : '写入';
+                const generatedItems = getGeneratedItems();
+                logMessage(`正在批量${actionText} ${generatedItems.length} 个 CSD 文件...`, 'info');
+                await writeGeneratedCsdFilesToSelectedDirectory();
+                showResult(`CSD 已批量${actionText}：${generatedItems.length} 个文件`, 'success');
+                goToCcsStep();
+            } catch (error) {
+                showResult(error.message, 'error');
+                logMessage(error.message, 'error');
+                showErrorNotice(error.message);
+            } finally {
+                executeCsdBtn.disabled = false;
+            }
+        });
+
+        skipCsdBtn.addEventListener('click', () => {
+            logMessage('用户跳过写入 CSD 文件', 'warning');
+            getGeneratedItems().forEach(item => downloadCsdFile(item.csdContent, item.csdFileName));
+            goToCcsStep();
+        });
+
+        executeCcsBtn.addEventListener('click', async () => {
+            const generatedItems = getGeneratedItems();
+            if (generatedItems.length === 0) {
+                showResult('请先生成 CSD 文件', 'error');
+                showErrorNotice('请先生成 CSD 文件，再更新 mjclient.ccs。');
+                return;
+            }
+
+            try {
+                executeCcsBtn.disabled = true;
+                logMessage('准备更新 mjclient.ccs，请确保 UI 编辑器已关闭', 'warning');
+                const ccsData = await readCcsFile();
+                const modifyResult = modifyCcsContentBatch(ccsData.content, generatedItems);
+                if (modifyResult.content === ccsData.content) {
+                    showResult(`mjclient.ccs 已存在全部 ${generatedItems.length} 个 CSD 引用，无需写入。`, 'success');
+                    logMessage('CCS 引用已存在，未改动文件', 'success');
+                    showSuccessNotice(`mjclient.ccs 已存在全部 ${generatedItems.length} 个 CSD 引用，无需写入。`);
+                } else {
+                    await writeCcsFile(modifyResult.content, ccsData.handle);
+                    showResult(`流程完成：已更新 mjclient.ccs，新增 ${modifyResult.addedCount} 个引用。`, 'success');
+                    showSuccessNotice(`mjclient.ccs 已更新完成。\n\n新增引用：${modifyResult.addedCount} 个\n已存在跳过：${modifyResult.existedCount} 个`);
+                }
+                setStep(4);
+            } catch (error) {
+                showResult(`更新 CCS 失败: ${error.message}`, 'error');
+                logMessage(`更新 CCS 失败: ${error.message}`, 'error');
+                const manualText = generatedItems.map(item => `<Project Name="${item.csdFileName}" Type="Layer" />`).join('\n');
+                logMessage(`请手动添加：${manualText}`, 'info');
+                showErrorNotice(`更新 CCS 失败：${error.message}\n\n可手动添加：\n${manualText}`);
+            } finally {
+                executeCcsBtn.disabled = false;
+            }
+        });
+
+        skipCcsBtn.addEventListener('click', () => {
+            showResult('流程完成。已跳过 mjclient.ccs 更新。', 'success');
+            logMessage('用户跳过 CCS 更新', 'warning');
+            setStep(4);
+        });
+
+        helpBtn.addEventListener('click', showHelp);
+    </script>
+</body>
+</html>
